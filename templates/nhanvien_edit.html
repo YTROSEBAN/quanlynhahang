@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Sửa Nhân Viên{% endblock %}
+
+{% block content %}
+<div class="page-header"><h2><i class="bi bi-pencil"></i> Sửa Nhân Viên - {{ item.HoTen }}</h2></div>
+<form method="POST" action="/nhanvien/edit/{{ item.MaNV }}" style="max-width:650px" class="row g-3">
+    <div class="col-12"><label class="form-label">Họ Tên</label><input type="text" class="form-control" name="HoTen" value="{{ item.HoTen }}" required></div>
+    <div class="col-md-6">
+        <label class="form-label">Giới Tính</label>
+        <select class="form-select" name="GioiTinh">
+            <option {% if item.GioiTinh=='Nam' %}selected{% endif %}>Nam</option>
+            <option {% if item.GioiTinh=='Nữ' %}selected{% endif %}>Nữ</option>
+        </select>
+    </div>
+    <div class="col-md-6"><label class="form-label">Số Điện Thoại</label><input type="text" class="form-control" name="SDT" value="{{ item.SDT or '' }}"></div>
+    <div class="col-md-6"><label class="form-label">Email</label><input type="email" class="form-control" name="Email" value="{{ item.Email or '' }}"></div>
+    <div class="col-md-6"><label class="form-label">Địa Chỉ</label><input type="text" class="form-control" name="DiaChi" value="{{ item.DiaChi or '' }}"></div>
+    <div class="col-md-6">
+        <label class="form-label">Chức Vụ</label>
+        <select class="form-select" name="ChucVu">
+            <option {% if item.ChucVu=='Quản lý' %}selected{% endif %}>Quản lý</option>
+            <option {% if item.ChucVu=='Phục vụ' %}selected{% endif %}>Phục vụ</option>
+            <option {% if item.ChucVu=='Bếp' %}selected{% endif %}>Bếp</option>
+            <option {% if item.ChucVu=='Thu ngân' %}selected{% endif %}>Thu ngân</option>
+            <option {% if item.ChucVu=='Bảo vệ' %}selected{% endif %}>Bảo vệ</option>
+        </select>
+    </div>
+    <div class="col-md-6">
+        <label class="form-label">Trạng Thái</label>
+        <select class="form-select" name="TrangThai">
+            <option value="Dang lam" {% if item.TrangThai=='Dang lam' %}selected{% endif %}>Đang làm</option>
+            <option value="Nghi viec" {% if item.TrangThai!='Dang lam' %}selected{% endif %}>Nghỉ việc</option>
+        </select>
+    </div>
+    <div class="col-12">
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Lưu</button>
+        <a href="/nhanvien" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Hủy</a>
+    </div>
+</form>
+{% endblock %}

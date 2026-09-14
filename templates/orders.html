@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Danh sách đơn hàng</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css" rel="stylesheet" />
+    <link href="/static/css/styles.css" rel="stylesheet" />
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container px-4 px-lg-5">
+            <a class="navbar-brand" href="/">Start Bootstrap</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"><span class="navbar-toggler-icon"></span></button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
+                    <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/about">About</a></li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Shop</a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="/menu/add">Thêm Menu</a></li>
+                            <li><hr class="dropdown-divider" /></li>
+                            <li><a class="dropdown-item" href="/menu/list">Danh sách Menu</a></li>
+                            <li><a class="dropdown-item" href="/orders">Đơn hàng</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <header class="bg-dark py-5">
+        <div class="container px-4 px-lg-5 my-5">
+            <div class="text-center text-white">
+                <h1 class="display-4 fw-bolder">Đơn hàng</h1>
+                <p class="lead fw-normal text-white-50 mb-0">Quản lý đơn hàng</p>
+            </div>
+        </div>
+    </header>
+
+    <section class="py-5">
+        <div class="container px-4 px-lg-5 mt-5">
+            {% if error %}
+            <div class="alert alert-danger">{{ error }}</div>
+            {% endif %}
+            {% if items|length == 0 %}
+            <div class="text-center">
+                <p class="text-muted">Chưa có đơn hàng nào</p>
+                <a href="/" class="btn btn-primary">Mua sắm ngay</a>
+            </div>
+            {% else %}
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>#</th>
+                            <th>Món</th>
+                            <th>Giá</th>
+                            <th>Size</th>
+                            <th>SL</th>
+                            <th>Tổng</th>
+                            <th>Khách hàng</th>
+                            <th>SĐT</th>
+                            <th>Địa chỉ</th>
+                            <th>Trạng thái</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in items %}
+                        <tr>
+                            <td>{{ item.id }}</td>
+                            <td>{{ item.menu_name }}</td>
+                            <td>{{ item.menu_price }} VND</td>
+                            <td>{{ item.menu_size }}</td>
+                            <td>{{ item.quantity }}</td>
+                            <td><strong>{{ item.menu_price * item.quantity }} VND</strong></td>
+                            <td>{{ item.customer_name }}</td>
+                            <td>{{ item.phone }}</td>
+                            <td>{{ item.address }}</td>
+                            <td>
+                                {% if item.status == 'Chờ xử lý' %}
+                                <span class="badge bg-warning text-dark">{{ item.status }}</span>
+                                {% elif item.status == 'Đang giao' %}
+                                <span class="badge bg-info">{{ item.status }}</span>
+                                {% elif item.status == 'Hoàn thành' %}
+                                <span class="badge bg-success">{{ item.status }}</span>
+                                {% elif item.status == 'Đã hủy' %}
+                                <span class="badge bg-danger">{{ item.status }}</span>
+                                {% else %}
+                                <span class="badge bg-secondary">{{ item.status }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <form method="POST" action="/orders/update/{{ item.id }}" class="d-inline">
+                                        {% if item.status == 'Chờ xử lý' %}
+                                        <input type="hidden" name="status" value="Đang giao">
+                                        <button type="submit" class="btn btn-info btn-sm" title="Giao hàng">🚚</button>
+                                        {% elif item.status == 'Đang giao' %}
+                                        <input type="hidden" name="status" value="Hoàn thành">
+                                        <button type="submit" class="btn btn-success btn-sm" title="Hoàn thành">✅</button>
+                                        {% elif item.status == 'Hoàn thành' %}
+                                        {% else %}
+                                        {% endif %}
+                                    </form>
+                                    <form method="POST" action="/orders/delete/{{ item.id }}" class="d-inline" onsubmit="return confirm('Xóa đơn hàng này?')">
+                                        <button type="submit" class="btn btn-danger btn-sm" title="Xóa">🗑️</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <footer class="py-5 bg-dark">
+        <div class="container"><p class="m-0 text-center text-white">Copyright &copy; Your Website 2023</p></div>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/js/scripts.js"></script>
+</body>
+</html>

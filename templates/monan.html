@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Quản Lý Món Ăn{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center">
+    <h2><i class="bi bi-cup-hot"></i> Món Ăn</h2>
+    <a href="/monan/add" class="btn btn-success"><i class="bi bi-plus-circle"></i> Thêm Món</a>
+</div>
+
+{% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
+
+<div class="row gx-4 gx-lg-5 row-cols-2 row-cols-md-3 row-cols-xl-4">
+    {% for item in items %}
+    <div class="col mb-4">
+        <div class="card h-100 shadow-sm">
+            {% if item.HinhAnh %}
+            <img class="card-img-top" src="{{ item.HinhAnh }}" alt="{{ item.TenMon }}" style="height:200px;object-fit:cover;" />
+            {% else %}
+            <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height:200px;"><i class="bi bi-image text-muted fs-1"></i></div>
+            {% endif %}
+            <div class="card-body p-3">
+                <h6 class="card-title fw-bold">{{ item.TenMon }}</h6>
+                <p class="text-danger fw-bold mb-1">{{ "{:,.0f}".format(item.DonGia) }} VND</p>
+                <small class="text-muted">{{ item.DonViTinh or '' }}</small><br>
+                <span class="badge bg-secondary mt-1">{{ item.ten_danhmuc or '' }}</span>
+                {% if item.TrangThai != 'Con ban' and item.TrangThai != 'Còn bán' %}
+                <span class="badge bg-danger mt-1">
+                    {% if item.TrangThai == 'Het mon' or item.TrangThai == 'Hết món' %}Hết món{% elif item.TrangThai == 'Ngung ban' or item.TrangThai == 'Ngừng bán' %}Ngừng bán{% else %}{{ item.TrangThai }}{% endif %}
+                </span>
+                {% endif %}
+            </div>
+            <div class="card-footer bg-transparent border-top-0 text-center">
+                <a href="/monan/edit/{{ item.MaMon }}" class="btn btn-warning btn-sm"><i class="bi bi-pencil"></i> Sửa</a>
+                <a href="/monan/delete/{{ item.MaMon }}" class="btn btn-danger btn-sm" onclick="return confirm('Xóa?')"><i class="bi bi-trash"></i> Xóa</a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

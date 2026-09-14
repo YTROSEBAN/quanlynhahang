@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Sửa Bàn{% endblock %}
+
+{% block content %}
+<div class="page-header"><h2><i class="bi bi-pencil"></i> Sửa Bàn - {{ item.TenBan }}</h2></div>
+<form method="POST" action="/ban/edit/{{ item.MaBan }}" class="row g-3" style="max-width:600px">
+    <div class="col-md-6"><label class="form-label">Tên Bàn</label><input type="text" class="form-control" name="TenBan" value="{{ item.TenBan }}" required></div>
+    <div class="col-md-6"><label class="form-label">Khu Vực</label><input type="text" class="form-control" name="KhuVuc" value="{{ item.KhuVuc }}"></div>
+    <div class="col-md-6"><label class="form-label">Sức Chứa</label><input type="number" class="form-control" name="SucChua" value="{{ item.SucChua }}"></div>
+    <div class="col-md-6">
+        <label class="form-label">Trạng Thái</label>
+        <select class="form-select" name="TrangThai">
+            <option value="Trong" {% if item.TrangThai=='Trong' %}selected{% endif %}>Trống</option>
+            <option value="Da dat" {% if item.TrangThai=='Da dat' or item.TrangThai=='Đã đặt' %}selected{% endif %}>Đã đặt</option>
+            <option value="Dang su dung" {% if item.TrangThai=='Dang su dung' %}selected{% endif %}>Đang sử dụng</option>
+        </select>
+    </div>
+    <div class="col-12">
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Lưu</button>
+        <a href="/ban" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Hủy</a>
+    </div>
+</form>
+{% endblock %}

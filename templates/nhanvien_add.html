@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Thêm Nhân Viên{% endblock %}
+
+{% block content %}
+<div class="page-header"><h2><i class="bi bi-plus-circle"></i> Thêm Nhân Viên Mới</h2></div>
+<form method="POST" action="/nhanvien/add" style="max-width:650px" class="row g-3">
+    <div class="col-12"><label class="form-label">Họ Tên</label><input type="text" class="form-control" name="HoTen" required></div>
+    <div class="col-md-6">
+        <label class="form-label">Giới Tính</label>
+        <select class="form-select" name="GioiTinh"><option>Nam</option><option>Nữ</option></select>
+    </div>
+    <div class="col-md-6"><label class="form-label">Số Điện Thoại</label><input type="text" class="form-control" name="SDT" required></div>
+    <div class="col-md-6"><label class="form-label">Email</label><input type="email" class="form-control" name="Email"></div>
+    <div class="col-md-6"><label class="form-label">Địa Chỉ</label><input type="text" class="form-control" name="DiaChi"></div>
+    <div class="col-md-6">
+        <label class="form-label">Chức Vụ</label>
+        <select class="form-select" name="ChucVu"><option>Quản lý</option><option>Phục vụ</option><option>Bếp</option><option>Thu ngân</option><option>Bảo vệ</option></select>
+    </div>
+    <div class="col-md-6"><label class="form-label">Tên Đăng Nhập</label><input type="text" class="form-control" name="Username" required></div>
+    <div class="col-md-6"><label class="form-label">Mật Khẩu</label><input type="password" class="form-control" name="Password" required></div>
+    <div class="col-12">
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Thêm Nhân Viên</button>
+        <a href="/nhanvien" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Hủy</a>
+    </div>
+</form>
+{% endblock %}

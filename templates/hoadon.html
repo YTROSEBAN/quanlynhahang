@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Quản Lý Hóa Đơn{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center">
+    <h2><i class="bi bi-receipt"></i> Hóa Đơn</h2>
+    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addModal"><i class="bi bi-plus-circle"></i> Tạo Hóa Đơn</button>
+</div>
+
+{% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
+{% if success %}<div class="alert alert-success">{{ success }}</div>{% endif %}
+
+<div class="table-responsive">
+    <table class="table table-bordered table-hover bg-white shadow-sm">
+        <thead class="table-dark">
+            <tr><th>Mã HĐ</th><th>Ngày Lập</th><th>Tổng Tiền</th><th>Trạng Thái</th><th>Thao Tác</th></tr>
+        </thead>
+        <tbody>
+            {% for hd in items %}
+            <tr>
+                <td>{{ hd.MaHD }}</td>
+                <td>{{ hd.NgayLap.strftime('%d/%m/%Y %H:%M') if hd.NgayLap else 'N/A' }}</td>
+                <td class="text-danger fw-bold">{{ "{:,.0f}".format(hd.TongTien) }} VND</td>
+                <td>
+                    {% if hd.TrangThai == 'Da thanh toan' or hd.TrangThai == 'Đã thanh toán' %}
+                    <span class="badge bg-success">Đã thanh toán</span>
+                    {% else %}
+                    <span class="badge bg-warning text-dark">Đang phục vụ</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if hd.TrangThai != 'Da thanh toan' and hd.TrangThai != 'Đã thanh toán' %}
+                    <a href="/hoadon/thanhtoan/{{ hd.MaHD }}" class="btn btn-success btn-sm" onclick="return confirm('Xác nhận thanh toán?')"><i class="bi bi-cash"></i> Thanh toán</a>
+                    {% endif %}
+                    <a href="/hoadon/xuat/{{ hd.MaHD }}" class="btn btn-info btn-sm" target="_blank"><i class="bi bi-printer"></i> Xuất</a>
+                    <a href="/hoadon/excel/{{ hd.MaHD }}" class="btn btn-success btn-sm"><i class="bi bi-file-earmark-excel"></i> Excel</a>
+                    <a href="/hoadon/delete/{{ hd.MaHD }}" class="btn btn-danger btn-sm" onclick="return confirm('Xóa?')"><i class="bi bi-trash"></i></a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="modal fade" id="addModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header"><h5>Tạo Hóa Đơn Mới</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+    <form method="POST" action="/hoadon/add">
+    <div class="modal-body">
+        <div class="mb-3"><label class="form-label">Mã Bàn</label><select class="form-select" name="MaBan" required>{% for b in bans %}<option value="{{ b.MaBan }}">{{ b.TenBan }}</option>{% endfor %}</select></div>
+        <div class="mb-3"><label class="form-label">Mã Nhân Viên</label><select class="form-select" name="MaNV" required>{% for nv in nhanviens %}<option value="{{ nv.MaNV }}">{{ nv.HoTen }}</option>{% endfor %}</select></div>
+        <div id="monanList">
+            <label class="form-label">Món Ăn</label>
+            <div class="input-group mb-2">
+                <select class="form-select" name="MaMon[]" required>{% for ma in monans %}<option value="{{ ma.MaMon }}">{{ ma.TenMon }} - {{ "{:,.0f}".format(ma.DonGia) }}</option>{% endfor %}</select>
+                <input type="number" class="form-control" name="SoLuong[]" value="1" min="1" style="max-width:80px">
+            </div>
+        </div>
+        <button type="button" class="btn btn-sm btn-outline-secondary mb-3" onclick="addMon()"><i class="bi bi-plus"></i> Thêm món</button>
+    </div>
+    <div class="modal-footer"><button type="submit" class="btn btn-primary">Tạo</button></div>
+    </form>
+</div></div></div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function addMon(){
+        const list=document.getElementById('monanList');
+        const row=list.querySelector('.input-group').cloneNode(true);
+        list.appendChild(row);
+    }
+</script>
+{% endblock %}

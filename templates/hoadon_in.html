@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <title>Hóa Đơn #{{ hd.MaHD }}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Times New Roman', Times, serif; font-size: 14px; color: #000; background: #fff; padding: 20px; }
+        .invoice { max-width: 400px; margin: 0 auto; }
+        .header { text-align: center; border-bottom: 2px dashed #000; padding-bottom: 10px; margin-bottom: 10px; }
+        .header h2 { font-size: 20px; letter-spacing: 2px; }
+        .header p { font-size: 12px; color: #555; }
+        .info-row { display: flex; justify-content: space-between; margin: 4px 0; font-size: 13px; }
+        .info-row .label { color: #555; }
+        table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+        th, td { padding: 4px 0; text-align: left; font-size: 13px; }
+        th { border-bottom: 1px solid #000; font-weight: bold; }
+        td { border-bottom: 1px dotted #ccc; }
+        .text-right { text-align: right; }
+        .total-row { border-top: 2px solid #000; font-weight: bold; font-size: 15px; }
+        .total-row td { padding: 6px 0; border-bottom: none; }
+        .footer { text-align: center; border-top: 2px dashed #000; padding-top: 10px; margin-top: 15px; font-size: 12px; color: #555; }
+        .watermark { text-align: center; font-size: 11px; color: #999; margin-top: 5px; }
+        .btn-print { position: fixed; top: 10px; right: 10px; padding: 8px 16px; background: #0d6efd; color: #fff; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; }
+        .btn-back { position: fixed; top: 10px; left: 10px; padding: 8px 16px; background: #6c757d; color: #fff; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; text-decoration: none; }
+        @media print { .btn-print, .btn-back { display: none; } body { padding: 0; } }
+    </style>
+</head>
+<body>
+    <a href="/hoadon" class="btn-back">← Quay lại</a>
+    <button class="btn-print" onclick="window.print()">🖨️ In hóa đơn</button>
+
+    <div class="invoice">
+        <div class="header">
+            <h2>NHÀ HÀNG</h2>
+            <p>Quản Lý Nhà Hàng</p>
+        </div>
+
+        <div class="info-row"><span class="label">Hóa đơn:</span><span><strong>#{{ hd.MaHD }}</strong></span></div>
+        <div class="info-row"><span class="label">Ngày lập:</span><span>{{ hd.NgayLap.strftime('%d/%m/%Y %H:%M') if hd.NgayLap else 'N/A' }}</span></div>
+        <div class="info-row"><span class="label">Bàn:</span><span><strong>{{ hd.TenBan or 'N/A' }}</strong></span></div>
+        <div class="info-row"><span class="label">Nhân viên:</span><span>{{ hd.TenNV or 'N/A' }}</span></div>
+        {% if hd.TenKH %}
+        <div class="info-row"><span class="label">Khách hàng:</span><span>{{ hd.TenKH }}</span></div>
+        {% endif %}
+
+        <table>
+            <thead>
+                <tr><th>Món</th><th class="text-right">SL</th><th class="text-right">Đơn giá</th><th class="text-right">Thành tiền</th></tr>
+            </thead>
+            <tbody>
+                {% for c in chitiet %}
+                <tr>
+                    <td>{{ c.TenMon }}</td>
+                    <td class="text-right">{{ c.SoLuong }}</td>
+                    <td class="text-right">{{ "{:,.0f}".format(c.DonGia) }}</td>
+                    <td class="text-right">{{ "{:,.0f}".format(c.ThanhTien) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <table>
+            <tr class="total-row">
+                <td colspan="3">TỔNG CỘNG</td>
+                <td class="text-right">{{ "{:,.0f}".format(hd.TongTien) }} ₫</td>
+            </tr>
+            {% if hd.GiamGia and hd.GiamGia > 0 %}
+            <tr><td colspan="3">Giảm giá</td><td class="text-right">-{{ "{:,.0f}".format(hd.GiamGia) }} ₫</td></tr>
+            <tr class="total-row"><td colspan="3">Thanh toán</td><td class="text-right">{{ "{:,.0f}".format(hd.ThanhTien or hd.TongTien) }} ₫</td></tr>
+            {% endif %}
+        </table>
+
+        <div class="info-row"><span class="label">Phương thức TT:</span><span>{{ hd.PhuongThucTT or 'Tiền mặt' }}</span></div>
+        <div class="info-row">
+            <span class="label">Trạng thái:</span>
+            <span><strong>{% if hd.TrangThai == 'Da thanh toan' or hd.TrangThai == 'Đã thanh toán' %}Đã thanh toán{% else %}Chưa thanh toán{% endif %}</strong></span>
+        </div>
+
+        <div class="footer">
+            <p>Cảm ơn quý khách đã sử dụng dịch vụ!</p>
+            <p>Hẹn gặp lại!</p>
+        </div>
+    </div>
+</body>
+</html>

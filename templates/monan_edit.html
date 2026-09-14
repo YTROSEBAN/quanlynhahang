@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Sửa Món Ăn{% endblock %}
+
+{% block content %}
+<div class="page-header"><h2><i class="bi bi-pencil"></i> Sửa Món - {{ item.TenMon }}</h2></div>
+<form method="POST" action="/monan/edit/{{ item.MaMon }}" enctype="multipart/form-data" style="max-width:650px" class="row g-3">
+    <div class="col-12"><label class="form-label">Tên Món</label><input type="text" class="form-control" name="TenMon" value="{{ item.TenMon }}" required></div>
+    <div class="col-md-4"><label class="form-label">Giá (VND)</label><input type="number" class="form-control" name="DonGia" value="{{ item.DonGia }}" required></div>
+    <div class="col-md-4"><label class="form-label">Đơn Vị Tính</label><input type="text" class="form-control" name="DonViTinh" value="{{ item.DonViTinh or '' }}"></div>
+    <div class="col-md-4">
+        <label class="form-label">Danh Mục</label>
+        <select class="form-select" name="MaDM">{% for dm in danhmuc %}<option value="{{ dm.id }}" {% if dm.id == item.MaDM %}selected{% endif %}>{{ dm.ten_danhmuc }}</option>{% endfor %}</select>
+    </div>
+    <div class="col-md-6">
+        <label class="form-label">Trạng Thái</label>
+        <select class="form-select" name="TrangThai">
+            <option value="Con ban" {% if item.TrangThai=='Con ban' or item.TrangThai=='Còn bán' %}selected{% endif %}>Còn bán</option>
+            <option value="Het mon" {% if item.TrangThai=='Het mon' or item.TrangThai=='Hết món' %}selected{% endif %}>Hết món</option>
+            <option value="Ngung ban" {% if item.TrangThai=='Ngung ban' or item.TrangThai=='Ngừng bán' %}selected{% endif %}>Ngừng bán</option>
+        </select>
+    </div>
+    <div class="col-md-6"><label class="form-label">Hình Ảnh Mới</label><input type="file" class="form-control" name="Image" accept="image/*"></div>
+    <div class="col-12"><label class="form-label">Mô Tả</label><textarea class="form-control" name="MoTa" rows="3">{{ item.MoTa or '' }}</textarea></div>
+    <div class="col-12">
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Lưu</button>
+        <a href="/monan" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Hủy</a>
+    </div>
+</form>
+{% endblock %}

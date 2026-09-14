@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Quản Lý Bàn{% endblock %}
+
+{% block content %}
+<div class="page-header"><h2><i class="bi bi-grid-3x3-gap"></i> Quản Lý Bàn</h2></div>
+
+{% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
+
+<div class="card mb-4">
+    <div class="card-header"><h5>Thêm Bàn Mới</h5></div>
+    <div class="card-body">
+        <form method="POST" action="/ban/add" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Tên Bàn</label>
+                <input type="text" class="form-control" name="TenBan" required placeholder="VD: A-01">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Khu Vực</label>
+                <select class="form-select" name="KhuVuc"><option>A</option><option>B</option><option>C</option><option>D</option><option>E</option></select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Sức Chứa</label>
+                <input type="number" class="form-control" name="SucChua" value="4" min="1">
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Thêm Bàn</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row g-3">
+    {% for item in items %}
+    <div class="col-md-3">
+        <div class="card {% if item.TrangThai == 'Trong' %}border-success{% elif item.TrangThai == 'Da dat' or item.TrangThai == 'Đã đặt' %}border-warning{% else %}border-danger{% endif %}">
+            <div class="card-body text-center">
+                <h4>{{ item.TenBan }}</h4>
+                <p class="text-muted mb-1">{{ item.KhuVuc }} - {{ item.SucChua }} chỗ</p>
+                <span class="badge {% if item.TrangThai == 'Trong' %}bg-success{% elif item.TrangThai == 'Da dat' or item.TrangThai == 'Đã đặt' %}bg-warning text-dark{% else %}bg-danger{% endif %} mb-2">
+                    {% if item.TrangThai == 'Trong' %}Trống{% elif item.TrangThai == 'Da dat' or item.TrangThai == 'Đã đặt' %}Đã đặt{% else %}{{ item.TrangThai }}{% endif %}
+                </span>
+                <div class="btn-group btn-group-sm">
+                    <a href="/ban/edit/{{ item.MaBan }}" class="btn btn-outline-primary"><i class="bi bi-pencil"></i> Sửa</a>
+                    <a href="/ban/delete/{{ item.MaBan }}" class="btn btn-outline-danger" onclick="return confirm('Xóa?')"><i class="bi bi-trash"></i> Xóa</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
