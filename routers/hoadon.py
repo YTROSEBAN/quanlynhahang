@@ -16,19 +16,24 @@ def list_hoadon(request: Request):
     try:
         with engine.connect() as conn:
             result = conn.execute(text("""
-                SELECT h.*, b.TenBan, n.HoTen, k.HoTen AS TenKH
+                SELECT h.mahd AS MaHD, h.ngaytao AS NgayLap, 
+                       COALESCE(h.tongthanhtoan, h.tongtien, 0) AS TongTien,
+                       h.giamgia AS GiamGia, COALESCE(h.tongthanhtoan, h.tongtien, 0) AS ThanhTien,
+                       CASE WHEN h.trangthai = 'DaThanhToan' THEN 'Da thanh toan' ELSE 'Dang phuc vu' END AS TrangThai,
+                       b.tenban AS TenBan, nv.hoten AS HoTen, kh.hoten AS TenKH
                 FROM hoadon h 
-                LEFT JOIN ban b ON h.MaBan = b.MaBan 
-                LEFT JOIN nhanvien n ON h.MaNV = n.MaNV
-                LEFT JOIN khachhang k ON h.MaKH = k.MaKH
-                ORDER BY h.MaHD DESC
+                LEFT JOIN banan b ON h.maban = b.maban 
+                LEFT JOIN nhanvien nv ON h.manv = nv.manv
+                LEFT JOIN khachhang kh ON h.makh = kh.makh
+                ORDER BY h.mahd DESC
             """))
             items = result.fetchall()
-            bans = conn.execute(text("SELECT * FROM ban")).fetchall()
-            nhanviens = conn.execute(text("SELECT * FROM nhanvien")).fetchall()
-            monans = conn.execute(text("SELECT * FROM monan")).fetchall()
+            bans = conn.execute(text("SELECT maban AS MaBan, tenban AS TenBan FROM banan")).fetchall()
+            nhanviens = conn.execute(text("SELECT manv AS MaNV, hoten AS HoTen FROM nhanvien")).fetchall()
+            monans = conn.execute(text("SELECT mamon AS MaMon, tenmon AS TenMon, gia AS DonGia FROM monan")).fetchall()
         return templates.TemplateResponse(request, "hoadon.html", {"items": items, "bans": bans, "nhanviens": nhanviens, "monans": monans, "active_page": "hoadon"})
     except Exception as e:
+        print("Lỗi list_hoadon:", e)
         return templates.TemplateResponse(request, "hoadon.html", {"error": str(e), "items": [], "bans": [], "nhanviens": [], "monans": [], "active_page": "hoadon"})
 
 
@@ -41,28 +46,28 @@ def add_hoadon(
         tong = 0
         with engine.connect() as conn:
             conn.execute(
-                text("INSERT INTO hoadon (MaNV, MaBan, TongTien, TrangThai) VALUES (:manv, :maban, 0, 'Dang phuc vu')"),
+                text("INSERT INTO hoadon (manv, maban, tongtien, trangthai) VALUES (:manv, :maban, 0, 'Cho')"),
                 {"manv": MaNV, "maban": MaBan}
             )
             ma_hd = conn.execute(text("SELECT LAST_INSERT_ID()")).scalar()
             for i in range(len(MaMon)):
-                mon = conn.execute(text("SELECT * FROM monan WHERE MaMon=:id"), {"id": MaMon[i]}).fetchone()
+                mon = conn.execute(text("SELECT gia FROM monan WHERE mamon=:id"), {"id": MaMon[i]}).fetchone()
                 sl = int(SoLuong[i]) if i < len(SoLuong) else 1
                 if mon:
-                    thanh_tien = mon.DonGia * sl
+                    thanh_tien = float(mon.gia) * sl
                     tong += thanh_tien
                     conn.execute(
-                        text("INSERT INTO chitiethoadon (MaHD, MaMon, SoLuong, DonGia, ThanhTien) VALUES (:hd, :mon, :sl, :dg, :tt)"),
-                        {"hd": ma_hd, "mon": MaMon[i], "sl": sl, "dg": mon.DonGia, "tt": thanh_tien}
+                        text("INSERT INTO ct_hoadon (mahd, mamon, soluong, dongia) VALUES (:hd, :mon, :sl, :dg)"),
+                        {"hd": ma_hd, "mon": MaMon[i], "sl": sl, "dg": mon.gia}
                     )
             conn.execute(
-                text("UPDATE hoadon SET TongTien=:tong WHERE MaHD=:id"),
+                text("UPDATE hoadon SET tongtien=:tong WHERE mahd=:id"),
                 {"tong": tong, "id": ma_hd}
             )
-            conn.execute(text("UPDATE ban SET TrangThai='Da dat' WHERE MaBan=:id"), {"id": MaBan})
+            conn.execute(text("UPDATE banan SET trangthai='DangSuDung' WHERE maban=:id"), {"id": MaBan})
             conn.commit()
-    except Exception:
-        pass
+    except Exception as e:
+        print("Lỗi add_hoadon:", e)
     return RedirectResponse(url="/hoadon", status_code=303)
 
 
@@ -70,14 +75,14 @@ def add_hoadon(
 def delete_hoadon(id: int):
     try:
         with engine.connect() as conn:
-            hd = conn.execute(text("SELECT MaBan FROM hoadon WHERE MaHD=:id"), {"id": id}).fetchone()
-            if hd and hd.MaBan:
-                conn.execute(text("UPDATE ban SET TrangThai='Trong' WHERE MaBan=:id"), {"id": hd.MaBan})
-            conn.execute(text("DELETE FROM chitiethoadon WHERE MaHD = :id"), {"id": id})
-            conn.execute(text("DELETE FROM hoadon WHERE MaHD = :id"), {"id": id})
+            hd = conn.execute(text("SELECT maban FROM hoadon WHERE mahd=:id"), {"id": id}).fetchone()
+            if hd and hd.maban:
+                conn.execute(text("UPDATE banan SET trangthai='Trong' WHERE maban=:id"), {"id": hd.maban})
+            conn.execute(text("DELETE FROM ct_hoadon WHERE mahd = :id"), {"id": id})
+            conn.execute(text("DELETE FROM hoadon WHERE mahd = :id"), {"id": id})
             conn.commit()
-    except Exception:
-        pass
+    except Exception as e:
+        print("Lỗi delete_hoadon:", e)
     return RedirectResponse(url="/hoadon", status_code=303)
 
 
@@ -85,13 +90,13 @@ def delete_hoadon(id: int):
 def thanh_toan(id: int):
     try:
         with engine.connect() as conn:
-            hd = conn.execute(text("SELECT MaBan FROM hoadon WHERE MaHD=:id"), {"id": id}).fetchone()
-            if hd and hd.MaBan:
-                conn.execute(text("UPDATE ban SET TrangThai='Trong' WHERE MaBan=:id"), {"id": hd.MaBan})
-            conn.execute(text("UPDATE hoadon SET TrangThai='Da thanh toan' WHERE MaHD=:id"), {"id": id})
+            hd = conn.execute(text("SELECT maban FROM hoadon WHERE mahd=:id"), {"id": id}).fetchone()
+            if hd and hd.maban:
+                conn.execute(text("UPDATE banan SET trangthai='Trong' WHERE maban=:id"), {"id": hd.maban})
+            conn.execute(text("UPDATE hoadon SET trangthai='DaThanhToan' WHERE mahd=:id"), {"id": id})
             conn.commit()
-    except Exception:
-        pass
+    except Exception as e:
+        print("Lỗi thanh_toan:", e)
     return RedirectResponse(url="/hoadon", status_code=303)
 
 
@@ -100,23 +105,29 @@ def xuat_hoadon(request: Request, id: int):
     try:
         with engine.connect() as conn:
             hd = conn.execute(text("""
-                SELECT h.*, b.TenBan, n.HoTen AS TenNV, k.HoTen AS TenKH
+                SELECT h.mahd AS MaHD, h.ngaytao AS NgayLap, 
+                       COALESCE(h.tongthanhtoan, h.tongtien, 0) AS TongTien,
+                       h.giamgia AS GiamGia, COALESCE(h.tongthanhtoan, h.tongtien, 0) AS ThanhTien,
+                       CASE WHEN h.trangthai = 'DaThanhToan' THEN 'Da thanh toan' ELSE 'Dang phuc vu' END AS TrangThai,
+                       b.tenban AS TenBan, nv.hoten AS TenNV, kh.hoten AS TenKH
                 FROM hoadon h
-                LEFT JOIN ban b ON h.MaBan = b.MaBan
-                LEFT JOIN nhanvien n ON h.MaNV = n.MaNV
-                LEFT JOIN khachhang k ON h.MaKH = k.MaKH
-                WHERE h.MaHD = :id
+                LEFT JOIN banan b ON h.maban = b.maban
+                LEFT JOIN nhanvien nv ON h.manv = nv.manv
+                LEFT JOIN khachhang kh ON h.makh = kh.makh
+                WHERE h.mahd = :id
             """), {"id": id}).fetchone()
             if hd is None:
                 return RedirectResponse(url="/hoadon", status_code=303)
             chitiet = conn.execute(text("""
-                SELECT ct.*, m.TenMon
-                FROM chitiethoadon ct
-                LEFT JOIN monan m ON ct.MaMon = m.MaMon
-                WHERE ct.MaHD = :id
+                SELECT ct.mahd AS MaHD, ct.mamon AS MaMon, ct.soluong AS SoLuong, ct.dongia AS DonGia,
+                       COALESCE(ct.thanhtien, ct.soluong * ct.dongia) AS ThanhTien, m.tenmon AS TenMon
+                FROM ct_hoadon ct
+                LEFT JOIN monan m ON ct.mamon = m.mamon
+                WHERE ct.mahd = :id
             """), {"id": id}).fetchall()
         return templates.TemplateResponse(request, "hoadon_in.html", {"hd": hd, "chitiet": chitiet})
-    except Exception:
+    except Exception as e:
+        print("Lỗi xuat_hoadon:", e)
         return RedirectResponse(url="/hoadon", status_code=303)
 
 
@@ -125,18 +136,23 @@ def xuat_excel(id: int):
     try:
         with engine.connect() as conn:
             hd = conn.execute(text("""
-                SELECT h.*, b.TenBan, n.HoTen AS TenNV, k.HoTen AS TenKH
+                SELECT h.mahd AS MaHD, h.ngaytao AS NgayLap, 
+                       COALESCE(h.tongthanhtoan, h.tongtien, 0) AS TongTien,
+                       h.giamgia AS GiamGia, COALESCE(h.tongthanhtoan, h.tongtien, 0) AS ThanhTien,
+                       CASE WHEN h.trangthai = 'DaThanhToan' THEN 'Da thanh toan' ELSE 'Dang phuc vu' END AS TrangThai,
+                       b.tenban AS TenBan, nv.hoten AS TenNV, kh.hoten AS TenKH
                 FROM hoadon h
-                LEFT JOIN ban b ON h.MaBan = b.MaBan
-                LEFT JOIN nhanvien n ON h.MaNV = n.MaNV
-                LEFT JOIN khachhang k ON h.MaKH = k.MaKH
-                WHERE h.MaHD = :id
+                LEFT JOIN banan b ON h.maban = b.maban
+                LEFT JOIN nhanvien nv ON h.manv = nv.manv
+                LEFT JOIN khachhang kh ON h.makh = kh.makh
+                WHERE h.mahd = :id
             """), {"id": id}).fetchone()
             chitiet = conn.execute(text("""
-                SELECT ct.*, m.TenMon
-                FROM chitiethoadon ct
-                LEFT JOIN monan m ON ct.MaMon = m.MaMon
-                WHERE ct.MaHD = :id
+                SELECT ct.mahd AS MaHD, ct.mamon AS MaMon, ct.soluong AS SoLuong, ct.dongia AS DonGia,
+                       COALESCE(ct.thanhtien, ct.soluong * ct.dongia) AS ThanhTien, m.tenmon AS TenMon
+                FROM ct_hoadon ct
+                LEFT JOIN monan m ON ct.mamon = m.mamon
+                WHERE ct.mahd = :id
             """), {"id": id}).fetchall()
 
         wb = Workbook()
@@ -151,9 +167,6 @@ def xuat_excel(id: int):
 
         center = Alignment(horizontal='center', vertical='center')
         right = Alignment(horizontal='right', vertical='center')
-        left = Alignment(horizontal='left', vertical='center')
-        wrap = Alignment(horizontal='left', vertical='center', wrap_text=True)
-
         fill_title = PatternFill(start_color='2F5496', end_color='2F5496', fill_type='solid')
         fill_header = PatternFill(start_color='4472C4', end_color='4472C4', fill_type='solid')
         fill_alt = PatternFill(start_color='D6E4F0', end_color='D6E4F0', fill_type='solid')
@@ -164,10 +177,8 @@ def xuat_excel(id: int):
         font_subtitle = Font(bold=True, size=11, color='8DB4E2')
         font_bold = Font(bold=True, size=11)
         font_normal = Font(size=11)
-        font_small = Font(size=10, color='666666')
         font_header_white = Font(bold=True, size=11, color='FFFFFF')
         font_total = Font(bold=True, size=13, color='C00000')
-        font_money = Font(bold=True, size=12, color='2F5496')
 
         ws.column_dimensions['A'].width = 4
         ws.column_dimensions['B'].width = 32
@@ -284,49 +295,6 @@ def xuat_excel(id: int):
             )
         ws.row_dimensions[row].height = 30
 
-        if hd.GiamGia and float(hd.GiamGia) > 0:
-            row += 1
-            ws.cell(row=row, column=4, value='Giảm giá:').font = font_bold
-            ws.cell(row=row, column=4).alignment = right
-            ws.cell(row=row, column=5, value=-float(hd.GiamGia)).font = Font(bold=True, size=11, color='FF0000')
-            ws.cell(row=row, column=5).number_format = '#,##0 ₫'
-            ws.cell(row=row, column=5).alignment = right
-
-            row += 1
-            ws.cell(row=row, column=4, value='THANH TOÁN:').font = Font(bold=True, size=13, color='006100')
-            ws.cell(row=row, column=4).alignment = right
-            ws.cell(row=row, column=4).fill = fill_success
-            ws.cell(row=row, column=5, value=float(hd.ThanhTien or hd.TongTien))
-            ws.cell(row=row, column=5).font = Font(bold=True, size=14, color='006100')
-            ws.cell(row=row, column=5).number_format = '#,##0 ₫'
-            ws.cell(row=row, column=5).alignment = right
-            ws.cell(row=row, column=5).fill = fill_success
-            for c in range(4, 6):
-                ws.cell(row=row, column=c).border = Border(
-                    top=Side(style='medium', color='006100'),
-                    bottom=Side(style='double', color='006100')
-                )
-
-        row += 2
-        tt_text = 'ĐÃ THANH TOÁN' if hd.TrangThai in ('Da thanh toan', 'Đã thanh toán') else 'CHƯA THANH TOÁN'
-        tt_color = '006100' if 'ĐÃ' in tt_text.upper() or 'DA' in tt_text.upper().replace('Đ','D') else 'C00000'
-
-        ws.merge_cells(f'A{row}:E{row}')
-        status = ws.cell(row=row, column=1, value=f'Trạng thái: {tt_text}')
-        status.font = Font(bold=True, size=12, color=tt_color)
-        status.alignment = center
-
-        row += 2
-        ws.merge_cells(f'A{row}:E{row}')
-        ws.cell(row=row, column=1, value='Cảm ơn quý khách! Hẹn gặp lại!').font = Font(italic=True, size=11, color='666666')
-        ws.cell(row=row, column=1).alignment = center
-
-        ws.print_area = f'A1:E{row}'
-        ws.page_setup.orientation = 'portrait'
-        ws.page_setup.paperSize = ws.PAPERSIZE_A5
-        ws.page_margins.left = 0.5
-        ws.page_margins.right = 0.5
-
         buf = BytesIO()
         wb.save(buf)
         buf.seek(0)
@@ -338,6 +306,7 @@ def xuat_excel(id: int):
             headers={'Content-Disposition': f'attachment; filename="{filename}"'}
         )
     except Exception as e:
+        print("Lỗi xuat_excel:", e)
         return RedirectResponse(url="/hoadon", status_code=303)
 
 
@@ -346,11 +315,14 @@ def api_hoadon():
     try:
         with engine.connect() as conn:
             result = conn.execute(text("""
-                SELECT h.*, b.TenBan, n.HoTen AS TenNV
+                SELECT h.mahd AS MaHD, h.ngaytao AS NgayLap, 
+                       COALESCE(h.tongthanhtoan, h.tongtien, 0) AS TongTien,
+                       CASE WHEN h.trangthai = 'DaThanhToan' THEN 'Da thanh toan' ELSE 'Dang phuc vu' END AS TrangThai,
+                       b.tenban AS TenBan, nv.hoten AS TenNV
                 FROM hoadon h 
-                LEFT JOIN ban b ON h.MaBan = b.MaBan 
-                LEFT JOIN nhanvien n ON h.MaNV = n.MaNV 
-                ORDER BY h.MaHD DESC
+                LEFT JOIN banan b ON h.maban = b.maban 
+                LEFT JOIN nhanvien nv ON h.manv = nv.manv 
+                ORDER BY h.mahd DESC
             """))
             items = [dict(row._mapping) for row in result]
         return items
@@ -363,10 +335,11 @@ def api_chitiet(ma_hd: int):
     try:
         with engine.connect() as conn:
             result = conn.execute(text("""
-                SELECT c.*, m.TenMon 
-                FROM chitiethoadon c 
-                LEFT JOIN monan m ON c.MaMon = m.MaMon 
-                WHERE c.MaHD = :id
+                SELECT ct.mahd AS MaHD, ct.mamon AS MaMon, ct.soluong AS SoLuong, ct.dongia AS DonGia,
+                       COALESCE(ct.thanhtien, ct.soluong * ct.dongia) AS ThanhTien, m.tenmon AS TenMon 
+                FROM ct_hoadon ct 
+                LEFT JOIN monan m ON ct.mamon = m.mamon 
+                WHERE ct.mahd = :id
             """), {"id": ma_hd})
             items = [dict(row._mapping) for row in result]
         return items

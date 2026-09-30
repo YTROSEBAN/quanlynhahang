@@ -4,42 +4,105 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
     <title>{% block title %}Quản Lý Nhà Hàng{% endblock %}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css" rel="stylesheet" />
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
     <link href="/static/css/styles.css" rel="stylesheet" />
-    <style>
-        body { display: flex; min-height: 100vh; margin: 0; }
-        .sidebar { width: 250px; background: linear-gradient(135deg, #212529, #343a40); color: #fff; position: fixed; height: 100vh; overflow-y: auto; }
-        .sidebar-brand { padding: 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .sidebar-brand h4 { margin: 0; letter-spacing: 2px; }
-        .sidebar-brand small { color: #adb5bd; }
-        .sidebar-menu { list-style: none; padding: 10px 0; margin: 0; }
-        .sidebar-menu li a { display: flex; align-items: center; gap: 12px; padding: 12px 24px; color: #adb5bd; text-decoration: none; transition: all 0.2s; }
-        .sidebar-menu li a:hover, .sidebar-menu li a.active { background: rgba(255,255,255,0.1); color: #fff; }
-        .sidebar-menu li a.active { background: #0d6efd; color: #fff; }
-        .sidebar-menu li a i { font-size: 1.2em; width: 24px; text-align: center; }
-        .main-content { flex: 1; padding: 15px 10px; background: #f8f9fa; min-height: 100vh; }
-        .footer { background: #212529; color: #fff; text-align: center; padding: 10px 0; }
-    </style>
+    <link href="/static/css/custom.css" rel="stylesheet" />
     {% block extra_css %}{% endblock %}
 </head>
 <body>
+    <!-- Sidebar -->
     <aside class="sidebar">
-        <div class="sidebar-brand"><h4>RESTAURANT</h4><small>Quản Lý Nhà Hàng</small></div>
-        <ul class="sidebar-menu">
-            <li><a href="/" {% if active_page == 'dashboard' %}class="active"{% endif %}><i class="bi bi-house-door"></i> Trang Chủ</a></li>
-            <li><a href="/ban" {% if active_page == 'ban' %}class="active"{% endif %}><i class="bi bi-grid-3x3-gap"></i> Quản Lý Bàn</a></li>
-            <li><a href="/monan" {% if active_page == 'monan' %}class="active"{% endif %}><i class="bi bi-cup-hot"></i> Món Ăn</a></li>
-            <li><a href="/hoadon" {% if active_page == 'hoadon' %}class="active"{% endif %}><i class="bi bi-receipt"></i> Hóa Đơn</a></li>
-            <li><a href="/nhanvien" {% if active_page == 'nhanvien' %}class="active"{% endif %}><i class="bi bi-people"></i> Nhân Viên</a></li>
-        </ul>
-    </aside>
-    <div style="flex:1; margin-left:250px;">
-        <div class="main-content">
-            {% block content %}{% endblock %}
+        <div class="sidebar-brand">
+            <div class="brand-icon">
+                <i class="bi bi-fire"></i>
+            </div>
+            <div class="brand-text">
+                <h4>GOURMET</h4>
+                <small>Quản Lý Nhà Hàng</small>
+            </div>
         </div>
-        <div class="footer"><p class="m-0">Bản quyền &copy; Nhà Hàng 2026</p></div>
+        <ul class="sidebar-menu">
+            <li class="menu-category">Tổng Quan</li>
+            <li>
+                <a href="/" {% if active_page == 'dashboard' %}class="active"{% endif %}>
+                    <i class="bi bi-grid-1x2"></i> Tổng Quan
+                </a>
+            </li>
+            
+            <li class="menu-category">Vận Hành</li>
+            <li>
+                <a href="/ban" {% if active_page == 'ban' %}class="active"{% endif %}>
+                    <i class="bi bi-layout-text-window-reverse"></i> Quản Lý Bàn
+                </a>
+            </li>
+            <li>
+                <a href="/monan" {% if active_page == 'monan' %}class="active"{% endif %}>
+                    <i class="bi bi-cup-hot"></i> Thực Đơn / Món Ăn
+                </a>
+            </li>
+            <li>
+                <a href="/hoadon" {% if active_page == 'hoadon' %}class="active"{% endif %}>
+                    <i class="bi bi-receipt-cutoff"></i> Hóa Đơn Bán Hàng
+                </a>
+            </li>
+            
+            <li class="menu-category">Hệ Thống</li>
+            <li>
+                <a href="/nhanvien" {% if active_page == 'nhanvien' %}class="active"{% endif %}>
+                    <i class="bi bi-people-fill"></i> Quản Lý Nhân Viên
+                </a>
+            </li>
+        </ul>
+        <div class="sidebar-user">
+            <div class="user-avatar">AD</div>
+            <div class="user-info">
+                <div class="name">Quản Trị Viên</div>
+                <div class="role"><i class="bi bi-shield-check"></i> Đang hoạt động</div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="main-wrapper">
+        <header class="topbar">
+            <div class="topbar-left">
+                <h1 class="page-title">{% block page_title %}{% block title_inner %}Quản Lý Nhà Hàng{% endblock %}{% endblock %}</h1>
+            </div>
+            <div class="topbar-right">
+                <div class="status-indicator">
+                    <span class="status-dot"></span>
+                    <span>Database: nhahang (Laragon)</span>
+                </div>
+                <span class="text-muted small" id="current-time"></span>
+            </div>
+        </header>
+
+        <main class="main-content">
+            {% block content %}{% endblock %}
+        </main>
+
+        <footer class="footer">
+            <div>Hệ Thống Quản Lý Nhà Hàng Thông Minh &copy; 2026</div>
+            <div class="text-muted small"><i class="bi bi-hdd-network"></i> MySQL Connected</div>
+        </footer>
     </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function updateTime() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            const dateStr = now.toLocaleDateString('vi-VN', { weekday: 'short', day: '2-digit', month: '2-digit' });
+            const el = document.getElementById('current-time');
+            if (el) el.innerHTML = `<i class="bi bi-clock"></i> ${dateStr} ${timeStr}`;
+        }
+        updateTime();
+        setInterval(updateTime, 1000);
+    </script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>

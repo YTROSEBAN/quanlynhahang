@@ -1,48 +1,125 @@
 {% extends "base.html" %}
-{% block title %}Quản Lý Bàn{% endblock %}
+{% block title %}Quản Lý Bàn - Quản Lý Nhà Hàng{% endblock %}
+{% block page_title %}Quản Lý Bàn Ăn{% endblock %}
+
+{% block extra_css %}
+<style>
+    .ban-grid-card {
+        border-radius: 16px;
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        padding: 20px;
+        text-align: center;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+    }
+    .ban-grid-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 24px rgba(0,0,0,0.08);
+    }
+    .ban-grid-card.border-trong { border-top: 4px solid #10b981; }
+    .ban-grid-card.border-dadat { border-top: 4px solid #f59e0b; }
+    .ban-grid-card.border-dangsudung { border-top: 4px solid #ef4444; }
+    .ban-avatar-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 14px;
+        margin: 0 auto 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+    }
+    .icon-trong { background: #ecfdf5; color: #10b981; }
+    .icon-dadat { background: #fffbeb; color: #f59e0b; }
+    .icon-dangsudung { background: #fef2f2; color: #ef4444; }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="page-header"><h2><i class="bi bi-grid-3x3-gap"></i> Quản Lý Bàn</h2></div>
+{% if error %}<div class="alert alert-danger shadow-sm border-0">{{ error }}</div>{% endif %}
 
-{% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
-
+<!-- Form thêm bàn -->
 <div class="card mb-4">
-    <div class="card-header"><h5>Thêm Bàn Mới</h5></div>
+    <div class="card-header">
+        <h5><i class="bi bi-plus-circle-fill text-primary"></i> Thêm Bàn Mới Vào Hệ Thống</h5>
+    </div>
     <div class="card-body">
-        <form method="POST" action="/ban/add" class="row g-3">
+        <form method="POST" action="/ban/add" class="row g-3 align-items-end">
             <div class="col-md-3">
-                <label class="form-label">Tên Bàn</label>
-                <input type="text" class="form-control" name="TenBan" required placeholder="VD: A-01">
+                <label class="form-label">Tên / Số Bàn</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light"><i class="bi bi-tag"></i></span>
+                    <input type="text" class="form-control" name="TenBan" required placeholder="VD: Bàn 01, VIP-01">
+                </div>
             </div>
             <div class="col-md-3">
-                <label class="form-label">Khu Vực</label>
-                <select class="form-select" name="KhuVuc"><option>A</option><option>B</option><option>C</option><option>D</option><option>E</option></select>
+                <label class="form-label">Khu Vực / Vị Trí</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light"><i class="bi bi-geo-alt"></i></span>
+                    <input type="text" class="form-control" name="KhuVuc" placeholder="VD: Tầng 1, Sân vườn, VIP">
+                </div>
             </div>
-            <div class="col-md-2">
-                <label class="form-label">Sức Chứa</label>
-                <input type="number" class="form-control" name="SucChua" value="4" min="1">
+            <div class="col-md-3">
+                <label class="form-label">Sức Chứa (Ghế ngồi)</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light"><i class="bi bi-people"></i></span>
+                    <input type="number" class="form-control" name="SucChua" value="4" min="1">
+                </div>
             </div>
-            <div class="col-md-4 d-flex align-items-end">
-                <button type="submit" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Thêm Bàn</button>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary w-100 py-2">
+                    <i class="bi bi-check-lg"></i> Thêm Bàn Ngay
+                </button>
             </div>
         </form>
     </div>
 </div>
 
-<div class="row g-3">
+<!-- Danh sách các bàn -->
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="fw-bold m-0"><i class="bi bi-grid-3x3-gap-fill text-primary"></i> Danh Sách Bàn Ăn ({{ items|length }})</h5>
+</div>
+
+<div class="row g-4">
     {% for item in items %}
-    <div class="col-md-3">
-        <div class="card {% if item.TrangThai == 'Trong' %}border-success{% elif item.TrangThai == 'Da dat' or item.TrangThai == 'Đã đặt' %}border-warning{% else %}border-danger{% endif %}">
-            <div class="card-body text-center">
-                <h4>{{ item.TenBan }}</h4>
-                <p class="text-muted mb-1">{{ item.KhuVuc }} - {{ item.SucChua }} chỗ</p>
-                <span class="badge {% if item.TrangThai == 'Trong' %}bg-success{% elif item.TrangThai == 'Da dat' or item.TrangThai == 'Đã đặt' %}bg-warning text-dark{% else %}bg-danger{% endif %} mb-2">
-                    {% if item.TrangThai == 'Trong' %}Trống{% elif item.TrangThai == 'Da dat' or item.TrangThai == 'Đã đặt' %}Đã đặt{% else %}{{ item.TrangThai }}{% endif %}
-                </span>
-                <div class="btn-group btn-group-sm">
-                    <a href="/ban/edit/{{ item.MaBan }}" class="btn btn-outline-primary"><i class="bi bi-pencil"></i> Sửa</a>
-                    <a href="/ban/delete/{{ item.MaBan }}" class="btn btn-outline-danger" onclick="return confirm('Xóa?')"><i class="bi bi-trash"></i> Xóa</a>
-                </div>
+    {% set st = item.TrangThai %}
+    {% set b_class = 'border-trong' %}
+    {% set i_class = 'icon-trong' %}
+    {% set badge_class = 'badge-soft-success' %}
+    {% set status_text = 'Trống' %}
+
+    {% if st == 'Da dat' or st == 'Đã đặt' or st == 'DaDat' %}
+        {% set b_class = 'border-dadat' %}
+        {% set i_class = 'icon-dadat' %}
+        {% set badge_class = 'badge-soft-warning' %}
+        {% set status_text = 'Đã đặt' %}
+    {% elif st != 'Trong' %}
+        {% set b_class = 'border-dangsudung' %}
+        {% set i_class = 'icon-dangsudung' %}
+        {% set badge_class = 'badge-soft-danger' %}
+        {% set status_text = 'Đang dùng' %}
+    {% endif %}
+
+    <div class="col-xl-3 col-lg-4 col-md-6">
+        <div class="ban-grid-card {{ b_class }}">
+            <div class="ban-avatar-icon {{ i_class }}">
+                <i class="bi bi-display"></i>
+            </div>
+            <h4 class="fw-bold mb-1">{{ item.TenBan }}</h4>
+            <p class="text-muted small mb-3">
+                <i class="bi bi-geo-alt"></i> {{ item.KhuVuc or 'Khu A' }} &bull; <i class="bi bi-person"></i> {{ item.SucChua or 4 }} chỗ
+            </p>
+            <div class="mb-3">
+                <span class="badge {{ badge_class }} fs-6 px-3 py-1">{{ status_text }}</span>
+            </div>
+            <div class="d-flex justify-content-center gap-2 pt-2 border-top">
+                <a href="/ban/edit/{{ item.MaBan }}" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-pencil-square"></i> Sửa
+                </a>
+                <a href="/ban/delete/{{ item.MaBan }}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Bạn chắc chắn muốn xóa bàn {{ item.TenBan }}?')">
+                    <i class="bi bi-trash"></i> Xóa
+                </a>
             </div>
         </div>
     </div>

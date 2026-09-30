@@ -1,26 +1,73 @@
 {% extends "base.html" %}
-{% block title %}Thêm Nhân Viên{% endblock %}
+{% block title %}Thêm Nhân Viên - Quản Lý Nhà Hàng{% endblock %}
+{% block page_title %}Thêm Nhân Sự Mới{% endblock %}
 
 {% block content %}
-<div class="page-header"><h2><i class="bi bi-plus-circle"></i> Thêm Nhân Viên Mới</h2></div>
-<form method="POST" action="/nhanvien/add" style="max-width:650px" class="row g-3">
-    <div class="col-12"><label class="form-label">Họ Tên</label><input type="text" class="form-control" name="HoTen" required></div>
-    <div class="col-md-6">
-        <label class="form-label">Giới Tính</label>
-        <select class="form-select" name="GioiTinh"><option>Nam</option><option>Nữ</option></select>
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-header">
+                <h5><i class="bi bi-person-plus text-primary"></i> Thông Tin Nhân Viên Mới</h5>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" action="/nhanvien/add" class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label">Họ và Tên</label>
+                        <input type="text" class="form-control" name="HoTen" required placeholder="VD: Nguyễn Văn An">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Giới Tính</label>
+                        <select class="form-select" name="GioiTinh">
+                            <option value="Nam">Nam</option>
+                            <option value="Nữ">Nữ</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Số Điện Thoại</label>
+                        <input type="text" class="form-control" name="SDT" required placeholder="VD: 0912345678">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" name="Email" placeholder="nhanvien@nhahang.com">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Chức Vụ / Vị Trí</label>
+                        <select class="form-select" name="ChucVu">
+                            <option value="Quản lý">Quản lý</option>
+                            <option value="Phục vụ" selected>Phục vụ</option>
+                            <option value="Bếp">Bếp</option>
+                            <option value="Thu ngân">Thu ngân</option>
+                            <option value="Bảo vệ">Bảo vệ</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Địa Chỉ Thường Trú</label>
+                        <input type="text" class="form-control" name="DiaChi" placeholder="Số nhà, tên đường, quận/huyện...">
+                    </div>
+                    
+                    <div class="col-12 pt-3 border-top">
+                        <h6 class="fw-bold text-primary mb-3"><i class="bi bi-shield-lock"></i> Tài Khoản Đăng Nhập Hệ Thống</h6>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Tên Đăng Nhập (Username)</label>
+                        <input type="text" class="form-control" name="Username" required placeholder="VD: an_nguyen">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Mật Khẩu (Password)</label>
+                        <input type="password" class="form-control" name="Password" required placeholder="••••••••">
+                    </div>
+                    
+                    <div class="col-12 pt-3 border-top d-flex gap-2">
+                        <button type="submit" class="btn btn-primary px-4">
+                            <i class="bi bi-check-lg"></i> Tạo Hồ Sơ Nhân Viên
+                        </button>
+                        <a href="/nhanvien" class="btn btn-outline-secondary px-4">
+                            <i class="bi bi-arrow-left"></i> Quay Lại
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
-    <div class="col-md-6"><label class="form-label">Số Điện Thoại</label><input type="text" class="form-control" name="SDT" required></div>
-    <div class="col-md-6"><label class="form-label">Email</label><input type="email" class="form-control" name="Email"></div>
-    <div class="col-md-6"><label class="form-label">Địa Chỉ</label><input type="text" class="form-control" name="DiaChi"></div>
-    <div class="col-md-6">
-        <label class="form-label">Chức Vụ</label>
-        <select class="form-select" name="ChucVu"><option>Quản lý</option><option>Phục vụ</option><option>Bếp</option><option>Thu ngân</option><option>Bảo vệ</option></select>
-    </div>
-    <div class="col-md-6"><label class="form-label">Tên Đăng Nhập</label><input type="text" class="form-control" name="Username" required></div>
-    <div class="col-md-6"><label class="form-label">Mật Khẩu</label><input type="password" class="form-control" name="Password" required></div>
-    <div class="col-12">
-        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Thêm Nhân Viên</button>
-        <a href="/nhanvien" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Hủy</a>
-    </div>
-</form>
+</div>
 {% endblock %}

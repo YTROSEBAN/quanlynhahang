@@ -1,23 +1,47 @@
 {% extends "base.html" %}
-{% block title %}Sửa Bàn{% endblock %}
+{% block title %}Cập Nhật Bàn - Quản Lý Nhà Hàng{% endblock %}
+{% block page_title %}Cập Nhật Thông Tin Bàn{% endblock %}
 
 {% block content %}
-<div class="page-header"><h2><i class="bi bi-pencil"></i> Sửa Bàn - {{ item.TenBan }}</h2></div>
-<form method="POST" action="/ban/edit/{{ item.MaBan }}" class="row g-3" style="max-width:600px">
-    <div class="col-md-6"><label class="form-label">Tên Bàn</label><input type="text" class="form-control" name="TenBan" value="{{ item.TenBan }}" required></div>
-    <div class="col-md-6"><label class="form-label">Khu Vực</label><input type="text" class="form-control" name="KhuVuc" value="{{ item.KhuVuc }}"></div>
-    <div class="col-md-6"><label class="form-label">Sức Chứa</label><input type="number" class="form-control" name="SucChua" value="{{ item.SucChua }}"></div>
-    <div class="col-md-6">
-        <label class="form-label">Trạng Thái</label>
-        <select class="form-select" name="TrangThai">
-            <option value="Trong" {% if item.TrangThai=='Trong' %}selected{% endif %}>Trống</option>
-            <option value="Da dat" {% if item.TrangThai=='Da dat' or item.TrangThai=='Đã đặt' %}selected{% endif %}>Đã đặt</option>
-            <option value="Dang su dung" {% if item.TrangThai=='Dang su dung' %}selected{% endif %}>Đang sử dụng</option>
-        </select>
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="card shadow-sm border-0">
+            <div class="card-header d-flex align-items-center gap-2">
+                <h5><i class="bi bi-pencil-square text-primary"></i> Chỉnh Sửa Thông Tin: {{ item.TenBan }}</h5>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" action="/ban/edit/{{ item.MaBan }}" class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Tên / Số Bàn</label>
+                        <input type="text" class="form-control" name="TenBan" value="{{ item.TenBan }}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Khu Vực / Vị Trí</label>
+                        <input type="text" class="form-control" name="KhuVuc" value="{{ item.KhuVuc or '' }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Sức Chứa (Số người)</label>
+                        <input type="number" class="form-control" name="SucChua" value="{{ item.SucChua or 4 }}" min="1">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Trạng Thái Bàn</label>
+                        <select class="form-select" name="TrangThai">
+                            <option value="Trong" {% if item.TrangThai=='Trong' %}selected{% endif %}>Trống (Sẵn sàng đón khách)</option>
+                            <option value="Da dat" {% if item.TrangThai=='Da dat' or item.TrangThai=='Đã đặt' or item.TrangThai=='DaDat' %}selected{% endif %}>Đã đặt trước</option>
+                            <option value="Dang su dung" {% if item.TrangThai=='Dang su dung' or item.TrangThai=='DangSuDung' or item.TrangThai=='Đang sử dụng' %}selected{% endif %}>Đang có khách phục vụ</option>
+                        </select>
+                    </div>
+                    <div class="col-12 pt-3 border-top d-flex gap-2">
+                        <button type="submit" class="btn btn-primary px-4">
+                            <i class="bi bi-check-lg"></i> Lưu Thay Đổi
+                        </button>
+                        <a href="/ban" class="btn btn-outline-secondary px-4">
+                            <i class="bi bi-arrow-left"></i> Quay Lại
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
-    <div class="col-12">
-        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Lưu</button>
-        <a href="/ban" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Hủy</a>
-    </div>
-</form>
+</div>
 {% endblock %}

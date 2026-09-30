@@ -1,5 +1,7 @@
 fastapi
-unicorn
+uvicorn
 sqlalchemy
 pymysql
 jinja2
+python-multipart
+openpyxl

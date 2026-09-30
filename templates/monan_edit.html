@@ -1,29 +1,67 @@
 {% extends "base.html" %}
-{% block title %}Sửa Món Ăn{% endblock %}
+{% block title %}Chỉnh Sửa Món Ăn - Quản Lý Nhà Hàng{% endblock %}
+{% block page_title %}Chỉnh Sửa Món Ăn{% endblock %}
 
 {% block content %}
-<div class="page-header"><h2><i class="bi bi-pencil"></i> Sửa Món - {{ item.TenMon }}</h2></div>
-<form method="POST" action="/monan/edit/{{ item.MaMon }}" enctype="multipart/form-data" style="max-width:650px" class="row g-3">
-    <div class="col-12"><label class="form-label">Tên Món</label><input type="text" class="form-control" name="TenMon" value="{{ item.TenMon }}" required></div>
-    <div class="col-md-4"><label class="form-label">Giá (VND)</label><input type="number" class="form-control" name="DonGia" value="{{ item.DonGia }}" required></div>
-    <div class="col-md-4"><label class="form-label">Đơn Vị Tính</label><input type="text" class="form-control" name="DonViTinh" value="{{ item.DonViTinh or '' }}"></div>
-    <div class="col-md-4">
-        <label class="form-label">Danh Mục</label>
-        <select class="form-select" name="MaDM">{% for dm in danhmuc %}<option value="{{ dm.id }}" {% if dm.id == item.MaDM %}selected{% endif %}>{{ dm.ten_danhmuc }}</option>{% endfor %}</select>
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-header">
+                <h5><i class="bi bi-pencil-square text-primary"></i> Chỉnh Sửa Món: {{ item.TenMon }}</h5>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" action="/monan/edit/{{ item.MaMon }}" enctype="multipart/form-data" class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label">Tên Món Ăn</label>
+                        <input type="text" class="form-control" name="TenMon" value="{{ item.TenMon }}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Giá Bán (VNĐ)</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" name="DonGia" value="{{ item.DonGia }}" required min="0">
+                            <span class="input-group-text">₫</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Danh Mục</label>
+                        <select class="form-select" name="MaDM">
+                            {% for dm in danhmuc %}
+                            <option value="{{ dm.id }}" {% if dm.id == item.MaDM %}selected{% endif %}>{{ dm.ten_danhmuc }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Trạng Thái Phục Vụ</label>
+                        <select class="form-select" name="TrangThai">
+                            <option value="Con ban" {% if item.TrangThai=='Con ban' or item.TrangThai=='Còn bán' or item.TrangThai==1 %}selected{% endif %}>Còn phục vụ</option>
+                            <option value="Het mon" {% if item.TrangThai!='Con ban' and item.TrangThai!='Còn bán' and item.TrangThai!=1 %}selected{% endif %}>Tạm hết món</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Cập Nhật Ảnh Mới (Nếu có)</label>
+                        <input type="file" class="form-control" name="Image" accept="image/*">
+                    </div>
+                    {% if item.HinhAnh %}
+                    <div class="col-12">
+                        <small class="text-muted d-block mb-1">Ảnh hiện tại:</small>
+                        <img src="{{ item.HinhAnh }}" alt="Preview" style="height:80px; border-radius:8px; object-fit:cover;">
+                    </div>
+                    {% endif %}
+                    <div class="col-12">
+                        <label class="form-label">Mô Tả Món Ăn</label>
+                        <textarea class="form-control" name="MoTa" rows="3">{{ item.MoTa or '' }}</textarea>
+                    </div>
+                    <div class="col-12 pt-3 border-top d-flex gap-2">
+                        <button type="submit" class="btn btn-primary px-4">
+                            <i class="bi bi-check-lg"></i> Lưu Thay Đổi
+                        </button>
+                        <a href="/monan" class="btn btn-outline-secondary px-4">
+                            <i class="bi bi-arrow-left"></i> Hủy
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
-    <div class="col-md-6">
-        <label class="form-label">Trạng Thái</label>
-        <select class="form-select" name="TrangThai">
-            <option value="Con ban" {% if item.TrangThai=='Con ban' or item.TrangThai=='Còn bán' %}selected{% endif %}>Còn bán</option>
-            <option value="Het mon" {% if item.TrangThai=='Het mon' or item.TrangThai=='Hết món' %}selected{% endif %}>Hết món</option>
-            <option value="Ngung ban" {% if item.TrangThai=='Ngung ban' or item.TrangThai=='Ngừng bán' %}selected{% endif %}>Ngừng bán</option>
-        </select>
-    </div>
-    <div class="col-md-6"><label class="form-label">Hình Ảnh Mới</label><input type="file" class="form-control" name="Image" accept="image/*"></div>
-    <div class="col-12"><label class="form-label">Mô Tả</label><textarea class="form-control" name="MoTa" rows="3">{{ item.MoTa or '' }}</textarea></div>
-    <div class="col-12">
-        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Lưu</button>
-        <a href="/monan" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Hủy</a>
-    </div>
-</form>
+</div>
 {% endblock %}

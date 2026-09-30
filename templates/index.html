@@ -1,100 +1,196 @@
 {% extends "base.html" %}
-{% block title %}Trang Chủ - Quản Lý Nhà Hàng{% endblock %}
+{% block title %}Tổng Quan - Quản Lý Nhà Hàng{% endblock %}
+{% block page_title %}Tổng Quan Nhà Hàng{% endblock %}
 
 {% block extra_css %}
 <style>
-    .stat-card { border-left: 4px solid; }
-    .stat-card.primary { border-color: #0d6efd; }
-    .stat-card.success { border-color: #198754; }
-    .stat-card.warning { border-color: #ffc107; }
-    .stat-card.danger { border-color: #dc3545; }
-    .ban-badge { cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
-    .ban-badge:hover { transform: scale(1.15); box-shadow: 0 4px 12px rgba(0,0,0,0.25); }
+    .filter-btn-group .btn {
+        padding: 6px 14px !important;
+        font-size: 0.82rem !important;
+        border-radius: 20px !important;
+    }
+    .table-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        gap: 16px;
+    }
+    .ban-item-card {
+        border-radius: 14px;
+        padding: 16px 12px;
+        text-align: center;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        cursor: pointer;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+    }
+    .ban-item-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+    }
+    .ban-item-card.status-trong {
+        border-top: 4px solid #10b981;
+    }
+    .ban-item-card.status-dadat {
+        border-top: 4px solid #f59e0b;
+    }
+    .ban-item-card.status-dangsudung {
+        border-top: 4px solid #ef4444;
+    }
+    .ban-icon {
+        font-size: 1.8rem;
+        margin-bottom: 6px;
+    }
+    .status-trong .ban-icon { color: #10b981; }
+    .status-dadat .ban-icon { color: #f59e0b; }
+    .status-dangsudung .ban-icon { color: #ef4444; }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="page-header"><h2><i class="bi bi-house-door"></i> Trang Chủ</h2></div>
+<!-- Metric Cards -->
 <div class="row g-4 mb-4">
-    <div class="col-xl-3 col-md-6">
-        <div class="card stat-card primary shadow-sm">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div><h6 class="text-muted mb-1">Bàn</h6><h3 class="mb-0">{{ tong_ban }}</h3></div>
-                    <i class="bi bi-grid-3x3-gap fs-1 text-primary"></i>
-                </div>
-            </div>//kkk
-        </div>
-    </div>
-    <div class="col-xl-3 col-md-6">
-        <div class="card stat-card success shadow-sm">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div><h6 class="text-muted mb-1">Món Ăn</h6><h3 class="mb-0">{{ tong_monan }}</h3></div>
-                    <i class="bi bi-cup-hot fs-1 text-success"></i>
-                </div>
+    <div class="col-xl-3 col-sm-6">
+        <div class="stat-card">
+            <div class="stat-info">
+                <h6>Tổng Bàn Ăn</h6>
+                <h3>{{ tong_ban }}</h3>
+            </div>
+            <div class="stat-icon primary">
+                <i class="bi bi-grid-3x3-gap-fill"></i>
             </div>
         </div>
     </div>
-    <div class="col-xl-3 col-md-6">
-        <div class="card stat-card warning shadow-sm">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div><h6 class="text-muted mb-1">Hóa Đơn Hôm Nay</h6><h3 class="mb-0">{{ tong_hoadon }}</h3></div>
-                    <i class="bi bi-receipt fs-1 text-warning"></i>
-                </div>
+    <div class="col-xl-3 col-sm-6">
+        <div class="stat-card">
+            <div class="stat-info">
+                <h6>Món Trong Thực Đơn</h6>
+                <h3>{{ tong_monan }}</h3>
+            </div>
+            <div class="stat-icon success">
+                <i class="bi bi-cup-hot-fill"></i>
             </div>
         </div>
     </div>
-    <div class="col-xl-3 col-md-6">
-        <div class="card stat-card danger shadow-sm">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div><h6 class="text-muted mb-1">Doanh Thu</h6><h3 class="mb-0">{{ "{:,.0f}".format(doanhthu) }} VND</h3></div>
-                    <i class="bi bi-cash fs-1 text-danger"></i>
-                </div>
+    <div class="col-xl-3 col-sm-6">
+        <div class="stat-card">
+            <div class="stat-info">
+                <h6>Tổng Hóa Đơn</h6>
+                <h3>{{ tong_hoadon }}</h3>
+            </div>
+            <div class="stat-icon warning">
+                <i class="bi bi-receipt-cutoff"></i>
             </div>
         </div>
     </div>
-</div>
-<div class="row g-4">
-    <div class="col-lg-7">
-        <div class="card shadow-sm">
-            <div class="card-header"><h5><i class="bi bi-grid-3x3-gap"></i> Trạng Thái Bàn <small class="text-muted">(bấm vào bàn để xem chi tiết)</small></h5></div>
-            <div class="card-body d-flex flex-wrap gap-2">
-                {% for b in bans %}
-                <div class="ban-badge badge p-2 {% if b.TrangThai=='Trong' %}bg-success{% elif b.TrangThai=='Da dat' or b.TrangThai=='Đã đặt' %}bg-warning text-dark{% else %}bg-danger{% endif %}"
-                     onclick="xemBan({{ b.MaBan }})" role="button" title="{{ b.TenBan }} - {% if b.TrangThai=='Trong' %}Trống{% elif b.TrangThai=='Da dat' or b.TrangThai=='Đã đặt' %}Đã đặt{% else %}{{ b.TrangThai }}{% endif %}">
-                    {{ b.TenBan }}
-                </div>
-                {% endfor %}
+    <div class="col-xl-3 col-sm-6">
+        <div class="stat-card">
+            <div class="stat-info">
+                <h6>Doanh Thu Đã Thu</h6>
+                <h3>{{ "{:,.0f}".format(doanhthu) }} <small class="fs-6 text-muted">₫</small></h3>
             </div>
-        </div>
-    </div>
-    <div class="col-lg-5">
-        <div class="card shadow-sm">
-            <div class="card-header"><h5><i class="bi bi-receipt"></i> Hóa Đơn Gần Đây</h5></div>
-            <div class="card-body">
-                {% for hd in recent_hds %}
-                <div class="d-flex justify-content-between border-bottom py-2">
-                    <span>HD#{{ hd.MaHD }} - {{ hd.TenBan }}</span>
-                    <span class="{% if hd.TrangThai=='Da thanh toan' %}text-success{% else %}text-warning{% endif %}">{{ "{:,.0f}".format(hd.TongTien) }} VND</span>
-                </div>
-                {% endfor %}
+            <div class="stat-icon danger">
+                <i class="bi bi-cash-stack"></i>
             </div>
         </div>
     </div>
 </div>
 
+<div class="row g-4">
+    <!-- Sơ đồ bàn -->
+    <div class="col-lg-8">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <h5><i class="bi bi-grid-fill text-primary"></i> Sơ Đồ Bàn Ăn</h5>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge badge-soft-success"><i class="bi bi-circle-fill" style="font-size:7px"></i> Trống</span>
+                    <span class="badge badge-soft-warning"><i class="bi bi-circle-fill" style="font-size:7px"></i> Đã đặt</span>
+                    <span class="badge badge-soft-danger"><i class="bi bi-circle-fill" style="font-size:7px"></i> Đang dùng</span>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if bans|length == 0 %}
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                    Chưa có bàn nào trong cơ sở dữ liệu.
+                </div>
+                {% else %}
+                <div class="table-grid">
+                    {% for b in bans %}
+                    {% set st = b.TrangThai %}
+                    {% set card_class = 'status-trong' %}
+                    {% set badge_class = 'badge-soft-success' %}
+                    {% set status_label = 'Trống' %}
+                    {% if st == 'Da dat' or st == 'Đã đặt' or st == 'DaDat' %}
+                        {% set card_class = 'status-dadat' %}
+                        {% set badge_class = 'badge-soft-warning' %}
+                        {% set status_label = 'Đã đặt' %}
+                    {% elif st != 'Trong' %}
+                        {% set card_class = 'status-dangsudung' %}
+                        {% set badge_class = 'badge-soft-danger' %}
+                        {% set status_label = 'Có khách' %}
+                    {% endif %}
+
+                    <div class="ban-item-card {{ card_class }}" onclick="xemBan({{ b.MaBan }})" title="Bấm để xem chi tiết {{ b.TenBan }}">
+                        <div class="ban-icon">
+                            <i class="bi bi-display"></i>
+                        </div>
+                        <h6 class="fw-bold mb-1">{{ b.TenBan }}</h6>
+                        <span class="badge {{ badge_class }}">{{ status_label }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Hóa đơn gần đây -->
+    <div class="col-lg-4">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5><i class="bi bi-clock-history text-primary"></i> Hóa Đơn Mới Nhất</h5>
+                <a href="/hoadon" class="small text-decoration-none fw-bold">Xem tất cả &rarr;</a>
+            </div>
+            <div class="card-body p-0">
+                {% if recent_hds|length == 0 %}
+                <div class="text-center py-5 text-muted">Chưa có hóa đơn nào</div>
+                {% else %}
+                <div class="list-group list-group-flush">
+                    {% for hd in recent_hds %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center py-3 px-4">
+                        <div>
+                            <div class="fw-bold text-dark">HĐ #{{ hd.MaHD }} <small class="text-muted fw-normal">({{ hd.TenBan or 'Khách vãng lai' }})</small></div>
+                            <span class="badge {% if hd.TrangThai == 'Da thanh toan' or hd.TrangThai == 'Đã thanh toán' %}badge-soft-success{% else %}badge-soft-warning{% endif %} mt-1">
+                                {{ 'Đã thanh toán' if (hd.TrangThai == 'Da thanh toan' or hd.TrangThai == 'Đã thanh toán') else 'Đang phục vụ' }}
+                            </span>
+                        </div>
+                        <div class="text-end">
+                            <span class="fw-bold text-primary fs-6">{{ "{:,.0f}".format(hd.TongTien) }} ₫</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Chi Tiết Bàn -->
 <div class="modal fade" id="banModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="banModalTitle">Chi Tiết Bàn</h5>
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+            <div class="modal-header border-bottom px-4 py-3" style="background:#f8fafc; border-top-left-radius: 20px; border-top-right-radius: 20px;">
+                <h5 class="modal-title fw-bold" id="banModalTitle">Chi Tiết Bàn</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body" id="banModalBody">
-                <div class="text-center py-4"><div class="spinner-border text-primary"></div><p class="mt-2">Đang tải...</p></div>
+            <div class="modal-body p-4" id="banModalBody">
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary"></div>
+                    <p class="mt-2 text-muted">Đang tải dữ liệu...</p>
+                </div>
             </div>
         </div>
     </div>
@@ -105,67 +201,77 @@
 <script>
 async function xemBan(maBan) {
     const modal = new bootstrap.Modal(document.getElementById('banModal'));
-    document.getElementById('banModalTitle').textContent = 'Đang tải...';
-    document.getElementById('banModalBody').innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary"></div></div>';
+    document.getElementById('banModalTitle').textContent = 'Đang tải thông tin...';
+    document.getElementById('banModalBody').innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary"></div><p class="mt-2 text-muted">Đang truy vấn database...</p></div>';
     modal.show();
 
     try {
         const res = await fetch('/api/ban/' + maBan + '/detail');
         const data = await res.json();
-        if (data.error) { document.getElementById('banModalBody').innerHTML = '<p class="text-danger">'+data.error+'</p>'; return; }
+        if (data.error) { 
+            document.getElementById('banModalBody').innerHTML = '<div class="alert alert-danger">'+data.error+'</div>'; 
+            return; 
+        }
 
         const b = data.ban;
-        let ttColor = b.TrangThai == 'Trong' ? 'success' : (b.TrangThai == 'Da dat' || b.TrangThai == 'Đã đặt') ? 'warning' : 'danger';
-        let ttText = b.TrangThai == 'Trong' ? 'Trống' : (b.TrangThai == 'Da dat' || b.TrangThai == 'Đã đặt') ? 'Đã đặt' : b.TrangThai;
+        let ttBadge = b.TrangThai == 'Trong' ? 'badge-soft-success' : (b.TrangThai == 'Da dat' || b.TrangThai == 'Đã đặt' || b.TrangThai == 'DaDat') ? 'badge-soft-warning' : 'badge-soft-danger';
+        let ttText = b.TrangThai == 'Trong' ? 'Trống' : (b.TrangThai == 'Da dat' || b.TrangThai == 'Đã đặt' || b.TrangThai == 'DaDat') ? 'Đã đặt' : 'Đang sử dụng';
 
-        document.getElementById('banModalTitle').innerHTML = '🪑 ' + b.TenBan + ' <span class="badge bg-' + ttColor + '">' + ttText + '</span>';
+        document.getElementById('banModalTitle').innerHTML = '<i class="bi bi-display text-primary"></i> ' + (b.TenBan||'Bàn') + ' <span class="badge ' + ttBadge + ' ms-2">' + ttText + '</span>';
 
-        let html = '<div class="row g-3 mb-3">';
-        html += '<div class="col-md-4"><strong>Khu vực:</strong> ' + b.KhuVuc + '</div>';
-        html += '<div class="col-md-4"><strong>Sức chứa:</strong> ' + b.SucChua + ' chỗ</div>';
-        html += '<div class="col-md-4"><strong>Trạng thái:</strong> ' + ttText + '</div>';
+        let html = '<div class="row g-3 p-3 bg-light rounded-3 mb-4">';
+        html += '<div class="col-sm-4"><small class="text-muted d-block">Vị Trí / Khu Vực</small><span class="fw-bold">'+(b.KhuVuc || 'Khu chính')+'</span></div>';
+        html += '<div class="col-sm-4"><small class="text-muted d-block">Sức Chứa</small><span class="fw-bold">'+(b.SucChua || 2)+' chỗ ngồi</span></div>';
+        html += '<div class="col-sm-4"><small class="text-muted d-block">Trạng Thái</small><span class="badge '+ttBadge+'">'+ttText+'</span></div>';
         html += '</div>';
 
-        if (data.datban.length > 0) {
-            html += '<h6 class="mt-3 mb-2"><i class="bi bi-calendar-check"></i> Đặt Bàn</h6>';
-            html += '<div class="table-responsive"><table class="table table-sm table-bordered">';
-            html += '<thead><tr><th>Khách</th><th>SĐT</th><th>Ngày đặt</th><th>Ngày đến</th><th>Số người</th><th>Trạng thái</th></tr></thead><tbody>';
+        // Đặt bàn
+        html += '<h6 class="fw-bold mb-3"><i class="bi bi-calendar-check text-primary"></i> Lịch Đặt Bàn</h6>';
+        if (data.datban && data.datban.length > 0) {
+            html += '<div class="table-responsive mb-4"><table class="table table-sm">';
+            html += '<thead><tr><th>Khách Hàng</th><th>SĐT</th><th>Ngày Đặt</th><th>Giờ</th><th>Số Người</th><th>Trạng Thái</th></tr></thead><tbody>';
             data.datban.forEach(d => {
                 let nd = d.NgayDat ? new Date(d.NgayDat).toLocaleDateString('vi-VN') : 'N/A';
-                let nn = d.NgayDen ? new Date(d.NgayDen).toLocaleDateString('vi-VN') : 'N/A';
-                html += '<tr><td>'+(d.TenKH||'N/A')+'</td><td>'+(d.SDT||'')+'</td><td>'+nd+'</td><td>'+nn+'</td><td>'+d.SoNguoi+'</td><td>'+d.TrangThai+'</td></tr>';
+                html += '<tr><td><strong>'+(d.TenKH||'Khách lẻ')+'</strong></td><td>'+(d.SDT||'--')+'</td><td>'+nd+'</td><td>'+(d.GioDat||'--')+'</td><td>'+d.SoNguoi+'</td><td><span class="badge badge-soft-warning">'+d.TrangThai+'</span></td></tr>';
             });
             html += '</tbody></table></div>';
         } else {
-            html += '<h6 class="mt-3 mb-2"><i class="bi bi-calendar-check"></i> Đặt Bàn</h6><p class="text-muted">Chưa có đặt bàn</p>';
+            html += '<p class="text-muted small mb-4">Chưa có lịch đặt bàn cho bàn này.</p>';
         }
 
-        if (data.hoadon.length > 0) {
-            html += '<h6 class="mt-3 mb-2"><i class="bi bi-receipt"></i> Hóa Đơn</h6>';
+        // Hóa đơn
+        html += '<h6 class="fw-bold mb-3"><i class="bi bi-receipt text-primary"></i> Hóa Đơn Của Bàn</h6>';
+        if (data.hoadon && data.hoadon.length > 0) {
             data.hoadon.forEach(hd => {
-                let ngay = hd.NgayLap ? new Date(hd.NgayLap).toLocaleDateString('vi-VN') : 'N/A';
-                let ttHD = hd.TrangThai == 'Da thanh toan' || hd.TrangThai == 'Đã thanh toán' ? '<span class="badge bg-success">Đã thanh toán</span>' : '<span class="badge bg-warning text-dark">Đang phục vụ</span>';
-                html += '<div class="border rounded p-2 mb-2">';
-                html += '<div class="d-flex justify-content-between"><strong>HD#'+hd.MaHD+'</strong> <span>'+ttHD+'</span></div>';
-                html += '<div class="small text-muted">Ngày: '+ngay+' | NV: '+(hd.TenNV||'N/A')+' | Tổng: <strong class="text-danger">'+Number(hd.TongTien).toLocaleString('vi-VN')+' VND</strong></div>';
-                html += '<div class="mt-1"><a href="/hoadon/xuat/'+hd.MaHD+'" target="_blank" class="btn btn-outline-info btn-sm"><i class="bi bi-printer"></i> In</a> <a href="/hoadon/excel/'+hd.MaHD+'" class="btn btn-outline-success btn-sm"><i class="bi bi-file-earmark-excel"></i> Excel</a></div>';
+                let ngay = hd.NgayLap ? new Date(hd.NgayLap).toLocaleString('vi-VN') : 'N/A';
+                let isDaTT = hd.TrangThai == 'DaThanhToan' || hd.TrangThai == 'Da thanh toan';
+                let ttHD = isDaTT ? '<span class="badge badge-soft-success">Đã thanh toán</span>' : '<span class="badge badge-soft-warning">Đang phục vụ</span>';
+                
+                html += '<div class="card p-3 mb-3 border">';
+                html += '<div class="d-flex justify-content-between align-items-center mb-2"><span class="fw-bold">Mã HĐ: #'+hd.MaHD+'</span> '+ttHD+'</div>';
+                html += '<div class="small text-muted mb-2"><i class="bi bi-clock"></i> '+ngay+' | <i class="bi bi-person"></i> NV: '+(hd.TenNV||'N/A')+'</div>';
+                
                 if (hd.chitiet && hd.chitiet.length > 0) {
-                    html += '<table class="table table-sm table-borderless mb-0 mt-1">';
-                    html += '<thead><tr><th class="small">Món</th><th class="small text-center">SL</th><th class="small text-end">Đơn giá</th><th class="small text-end">Thành tiền</th></tr></thead><tbody>';
+                    html += '<div class="table-responsive mb-2"><table class="table table-sm table-borderless">';
+                    html += '<thead class="border-bottom"><tr><th>Món</th><th class="text-center">SL</th><th class="text-end">Đơn Giá</th><th class="text-end">Thành Tiền</th></tr></thead><tbody>';
                     hd.chitiet.forEach(c => {
-                        html += '<tr><td class="small">'+c.TenMon+'</td><td class="small text-center">'+c.SoLuong+'</td><td class="small text-end">'+Number(c.DonGia).toLocaleString('vi-VN')+'</td><td class="small text-end fw-bold">'+Number(c.ThanhTien).toLocaleString('vi-VN')+'</td></tr>';
+                        html += '<tr><td>'+c.TenMon+'</td><td class="text-center">'+c.SoLuong+'</td><td class="text-end">'+Number(c.DonGia).toLocaleString('vi-VN')+' ₫</td><td class="text-end fw-bold">'+Number(c.ThanhTien).toLocaleString('vi-VN')+' ₫</td></tr>';
                     });
-                    html += '</tbody></table>';
+                    html += '</tbody></table></div>';
                 }
-                html += '</div>';
+                
+                html += '<div class="d-flex justify-content-between align-items-center pt-2 border-top">';
+                html += '<div><a href="/hoadon/xuat/'+hd.MaHD+'" target="_blank" class="btn btn-sm btn-outline-primary"><i class="bi bi-printer"></i> In HĐ</a> <a href="/hoadon/excel/'+hd.MaHD+'" class="btn btn-sm btn-outline-success"><i class="bi bi-file-earmark-excel"></i> Excel</a></div>';
+                html += '<div class="text-end"><span class="text-muted small me-2">Tổng cộng:</span><span class="fs-6 fw-bold text-danger">'+Number(hd.TongTien||hd.ThanhTien).toLocaleString('vi-VN')+' ₫</span></div>';
+                html += '</div></div>';
             });
         } else {
-            html += '<h6 class="mt-3 mb-2"><i class="bi bi-receipt"></i> Hóa Đơn</h6><p class="text-muted">Chưa có hóa đơn</p>';
+            html += '<p class="text-muted small">Bàn hiện không có hóa đơn nào đang mở.</p>';
         }
 
         document.getElementById('banModalBody').innerHTML = html;
     } catch(e) {
-        document.getElementById('banModalBody').innerHTML = '<p class="text-danger">Lỗi tải dữ liệu: '+e.message+'</p>';
+        document.getElementById('banModalBody').innerHTML = '<div class="alert alert-danger">Lỗi khi tải dữ liệu: '+e.message+'</div>';
     }
 }
 </script>

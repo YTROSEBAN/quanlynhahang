@@ -1,18 +1,55 @@
 {% extends "base.html" %}
-{% block title %}Thêm Món Ăn{% endblock %}
+{% block title %}Thêm Món Ăn - Quản Lý Nhà Hàng{% endblock %}
+{% block page_title %}Thêm Món Ăn Mới{% endblock %}
 
 {% block content %}
-<div class="page-header"><h2><i class="bi bi-plus-circle"></i> Thêm Món Ăn Mới</h2></div>
-<form method="POST" action="/monan/add" enctype="multipart/form-data" style="max-width:650px" class="row g-3">
-    <div class="col-12"><label class="form-label">Tên Món</label><input type="text" class="form-control" name="TenMon" required></div>
-    <div class="col-md-4"><label class="form-label">Giá (VND)</label><input type="number" class="form-control" name="DonGia" required min="0"></div>
-    <div class="col-md-4"><label class="form-label">Đơn Vị Tính</label><select class="form-select" name="DonViTinh"><option>Phần</option><option>Đĩa</option><option>Ly</option><option>Chai</option><option>Lon</option></select></div>
-    <div class="col-md-4"><label class="form-label">Danh Mục</label><select class="form-select" name="MaDM">{% for dm in danhmuc %}<option value="{{ dm.id }}">{{ dm.ten_danhmuc }}</option>{% endfor %}</select></div>
-    <div class="col-md-6"><label class="form-label">Hình Ảnh</label><input type="file" class="form-control" name="Image" accept="image/*"></div>
-    <div class="col-12"><label class="form-label">Mô Tả</label><textarea class="form-control" name="MoTa" rows="3"></textarea></div>
-    <div class="col-12">
-        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Thêm Món</button>
-        <a href="/monan" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Hủy</a>
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-header">
+                <h5><i class="bi bi-plus-circle text-primary"></i> Thông Tin Món Ăn Mới</h5>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" action="/monan/add" enctype="multipart/form-data" class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label">Tên Món Ăn</label>
+                        <input type="text" class="form-control" name="TenMon" required placeholder="VD: Lẩu Thái hải sản, Bò sốt tiêu">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Giá Bán (VNĐ)</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" name="DonGia" required min="0" placeholder="VD: 150000">
+                            <span class="input-group-text">₫</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Danh Mục</label>
+                        <select class="form-select" name="MaDM">
+                            {% for dm in danhmuc %}
+                            <option value="{{ dm.id }}">{{ dm.ten_danhmuc }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Hình Ảnh Món Ăn</label>
+                        <input type="file" class="form-control" name="Image" accept="image/*">
+                        <small class="text-muted">Định dạng hỗ trợ: JPG, PNG, WEBP</small>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Mô Tả Hương Vị & Thành Phần</label>
+                        <textarea class="form-control" name="MoTa" rows="3" placeholder="Mô tả nguyên liệu, hương vị đặc sắc của món..."></textarea>
+                    </div>
+                    <div class="col-12 pt-3 border-top d-flex gap-2">
+                        <button type="submit" class="btn btn-primary px-4">
+                            <i class="bi bi-check-lg"></i> Thêm Món Vào Menu
+                        </button>
+                        <a href="/monan" class="btn btn-outline-secondary px-4">
+                            <i class="bi bi-arrow-left"></i> Quay Lại
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
-</form>
+</div>
 {% endblock %}

@@ -1,73 +1,159 @@
 {% extends "base.html" %}
-{% block title %}Quản Lý Hóa Đơn{% endblock %}
+{% block title %}Hóa Đơn - Quản Lý Nhà Hàng{% endblock %}
+{% block page_title %}Hóa Đơn & Thanh Toán{% endblock %}
 
 {% block content %}
-<div class="page-header d-flex justify-content-between align-items-center">
-    <h2><i class="bi bi-receipt"></i> Hóa Đơn</h2>
-    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addModal"><i class="bi bi-plus-circle"></i> Tạo Hóa Đơn</button>
-</div>
-
-{% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
-{% if success %}<div class="alert alert-success">{{ success }}</div>{% endif %}
-
-<div class="table-responsive">
-    <table class="table table-bordered table-hover bg-white shadow-sm">
-        <thead class="table-dark">
-            <tr><th>Mã HĐ</th><th>Ngày Lập</th><th>Tổng Tiền</th><th>Trạng Thái</th><th>Thao Tác</th></tr>
-        </thead>
-        <tbody>
-            {% for hd in items %}
-            <tr>
-                <td>{{ hd.MaHD }}</td>
-                <td>{{ hd.NgayLap.strftime('%d/%m/%Y %H:%M') if hd.NgayLap else 'N/A' }}</td>
-                <td class="text-danger fw-bold">{{ "{:,.0f}".format(hd.TongTien) }} VND</td>
-                <td>
-                    {% if hd.TrangThai == 'Da thanh toan' or hd.TrangThai == 'Đã thanh toán' %}
-                    <span class="badge bg-success">Đã thanh toán</span>
-                    {% else %}
-                    <span class="badge bg-warning text-dark">Đang phục vụ</span>
-                    {% endif %}
-                </td>
-                <td>
-                    {% if hd.TrangThai != 'Da thanh toan' and hd.TrangThai != 'Đã thanh toán' %}
-                    <a href="/hoadon/thanhtoan/{{ hd.MaHD }}" class="btn btn-success btn-sm" onclick="return confirm('Xác nhận thanh toán?')"><i class="bi bi-cash"></i> Thanh toán</a>
-                    {% endif %}
-                    <a href="/hoadon/xuat/{{ hd.MaHD }}" class="btn btn-info btn-sm" target="_blank"><i class="bi bi-printer"></i> Xuất</a>
-                    <a href="/hoadon/excel/{{ hd.MaHD }}" class="btn btn-success btn-sm"><i class="bi bi-file-earmark-excel"></i> Excel</a>
-                    <a href="/hoadon/delete/{{ hd.MaHD }}" class="btn btn-danger btn-sm" onclick="return confirm('Xóa?')"><i class="bi bi-trash"></i></a>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
-
-<div class="modal fade" id="addModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
-    <div class="modal-header"><h5>Tạo Hóa Đơn Mới</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
-    <form method="POST" action="/hoadon/add">
-    <div class="modal-body">
-        <div class="mb-3"><label class="form-label">Mã Bàn</label><select class="form-select" name="MaBan" required>{% for b in bans %}<option value="{{ b.MaBan }}">{{ b.TenBan }}</option>{% endfor %}</select></div>
-        <div class="mb-3"><label class="form-label">Mã Nhân Viên</label><select class="form-select" name="MaNV" required>{% for nv in nhanviens %}<option value="{{ nv.MaNV }}">{{ nv.HoTen }}</option>{% endfor %}</select></div>
-        <div id="monanList">
-            <label class="form-label">Món Ăn</label>
-            <div class="input-group mb-2">
-                <select class="form-select" name="MaMon[]" required>{% for ma in monans %}<option value="{{ ma.MaMon }}">{{ ma.TenMon }} - {{ "{:,.0f}".format(ma.DonGia) }}</option>{% endfor %}</select>
-                <input type="number" class="form-control" name="SoLuong[]" value="1" min="1" style="max-width:80px">
-            </div>
-        </div>
-        <button type="button" class="btn btn-sm btn-outline-secondary mb-3" onclick="addMon()"><i class="bi bi-plus"></i> Thêm món</button>
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+    <div>
+        <h5 class="fw-bold mb-1">Danh Sách Hóa Đơn</h5>
+        <small class="text-muted">Theo dõi và thanh toán hóa đơn theo thời gian thực</small>
     </div>
-    <div class="modal-footer"><button type="submit" class="btn btn-primary">Tạo</button></div>
-    </form>
-</div></div></div>
+    <button class="btn btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#addModal">
+        <i class="bi bi-plus-circle"></i> Lập Hóa Đơn Mới
+    </button>
+</div>
+
+{% if error %}<div class="alert alert-danger shadow-sm border-0">{{ error }}</div>{% endif %}
+{% if success %}<div class="alert alert-success shadow-sm border-0">{{ success }}</div>{% endif %}
+
+<div class="card shadow-sm border-0">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr>
+                    <th class="ps-4">Mã HĐ</th>
+                    <th>Bàn Ăn</th>
+                    <th>Nhân Viên</th>
+                    <th>Thời Gian</th>
+                    <th class="text-end">Tổng Tiền</th>
+                    <th class="text-center">Trạng Thái</th>
+                    <th class="text-center pe-4">Thao Tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if items|length == 0 %}
+                <tr>
+                    <td colspan="7" class="text-center py-5 text-muted">
+                        <i class="bi bi-receipt fs-1 d-block mb-2 text-primary opacity-50"></i>
+                        Chưa có hóa đơn nào được tạo.
+                    </td>
+                </tr>
+                {% else %}
+                {% for hd in items %}
+                {% set is_paid = (hd.TrangThai == 'Da thanh toan' or hd.TrangThai == 'Đã thanh toán' or hd.TrangThai == 'DaThanhToan') %}
+                <tr>
+                    <td class="ps-4 fw-bold text-primary">#{{ hd.MaHD }}</td>
+                    <td>
+                        <span class="badge bg-light text-dark border px-2 py-1">
+                            <i class="bi bi-display"></i> {{ hd.TenBan or 'Khách vãng lai' }}
+                        </span>
+                    </td>
+                    <td>{{ hd.TenNV or hd.HoTen or 'N/A' }}</td>
+                    <td class="text-muted small">
+                        <i class="bi bi-calendar3"></i> {{ hd.NgayLap.strftime('%d/%m/%Y %H:%M') if hd.NgayLap else 'N/A' }}
+                    </td>
+                    <td class="text-end fw-bold text-danger fs-6">
+                        {{ "{:,.0f}".format(hd.TongTien) }} ₫
+                    </td>
+                    <td class="text-center">
+                        {% if is_paid %}
+                        <span class="badge badge-soft-success">Đã thanh toán</span>
+                        {% else %}
+                        <span class="badge badge-soft-warning">Đang phục vụ</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center pe-4">
+                        <div class="btn-group btn-group-sm">
+                            {% if not is_paid %}
+                            <a href="/hoadon/thanhtoan/{{ hd.MaHD }}" class="btn btn-outline-success" onclick="return confirm('Xác nhận thanh toán cho Hóa đơn #{{ hd.MaHD }}?')" title="Thanh toán ngay">
+                                <i class="bi bi-cash-coin"></i> Thu tiền
+                            </a>
+                            {% endif %}
+                            <a href="/hoadon/xuat/{{ hd.MaHD }}" class="btn btn-outline-primary" target="_blank" title="In phiếu">
+                                <i class="bi bi-printer"></i>
+                            </a>
+                            <a href="/hoadon/excel/{{ hd.MaHD }}" class="btn btn-outline-secondary" title="Xuất file Excel">
+                                <i class="bi bi-file-earmark-excel"></i>
+                            </a>
+                            <a href="/hoadon/delete/{{ hd.MaHD }}" class="btn btn-outline-danger" onclick="return confirm('Bạn có chắc muốn xóa hóa đơn #{{ hd.MaHD }}?')" title="Xóa">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal tạo hóa đơn -->
+<div class="modal fade" id="addModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+            <div class="modal-header border-bottom px-4 py-3" style="background:#f8fafc; border-top-left-radius: 20px; border-top-right-radius: 20px;">
+                <h5 class="modal-title fw-bold"><i class="bi bi-receipt-cutoff text-primary"></i> Tạo Hóa Đơn Mới</h5>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="/hoadon/add">
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label">Chọn Bàn Ăn</label>
+                        <select class="form-select" name="MaBan" required>
+                            {% for b in bans %}
+                            <option value="{{ b.MaBan }}">{{ b.TenBan }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Nhân Viên Phục Vụ</label>
+                        <select class="form-select" name="MaNV" required>
+                            {% for nv in nhanviens %}
+                            <option value="{{ nv.MaNV }}">{{ nv.HoTen }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <label class="form-label d-flex justify-content-between">
+                        <span>Danh Sách Món Gọi</span>
+                        <span class="text-muted small">Tối thiểu 1 món</span>
+                    </label>
+                    <div id="monanList" class="mb-2">
+                        <div class="input-group mb-2 mon-row">
+                            <select class="form-select" name="MaMon[]" required>
+                                {% for ma in monans %}
+                                <option value="{{ ma.MaMon }}">{{ ma.TenMon }} - {{ "{:,.0f}".format(ma.DonGia) }} ₫</option>
+                                {% endfor %}
+                            </select>
+                            <span class="input-group-text bg-light">SL</span>
+                            <input type="number" class="form-control" name="SoLuong[]" value="1" min="1" style="max-width:80px">
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-secondary w-100 mb-3" onclick="addMon()">
+                        <i class="bi bi-plus-lg"></i> Thêm Món Vào Bàn
+                    </button>
+                </div>
+                <div class="modal-footer border-top px-4 py-3">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle"></i> Khởi Tạo Hóa Đơn</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    function addMon(){
-        const list=document.getElementById('monanList');
-        const row=list.querySelector('.input-group').cloneNode(true);
+function addMon(){
+    const list = document.getElementById('monanList');
+    const firstRow = list.querySelector('.mon-row');
+    if (firstRow) {
+        const row = firstRow.cloneNode(true);
+        row.querySelector('input[type="number"]').value = 1;
         list.appendChild(row);
     }
+}
 </script>
 {% endblock %}

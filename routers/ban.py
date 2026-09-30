@@ -7,12 +7,33 @@ from database.db import engine
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
 
+def normalize_status(tt: str) -> str:
+    mapping = {
+        'Trong': 'Trong',
+        'Da dat': 'DaDat',
+        'DaDat': 'DaDat',
+        'Đã đặt': 'DaDat',
+        'Dang su dung': 'DangSuDung',
+        'DangSuDung': 'DangSuDung',
+        'Đang sử dụng': 'DangSuDung',
+        'Dang phuc vu': 'DangSuDung'
+    }
+    return mapping.get(tt, 'Trong')
+
 
 @router.get("/ban", response_class=HTMLResponse)
 def list_ban(request: Request):
     try:
         with engine.connect() as conn:
-            result = conn.execute(text("SELECT * FROM ban ORDER BY MaBan"))
+            result = conn.execute(text("""
+                SELECT maban AS MaBan, tenban AS TenBan, vitri AS KhuVuc, sachogoi AS SucChua, 
+                       CASE 
+                           WHEN trangthai = 'DangSuDung' THEN 'Dang su dung'
+                           WHEN trangthai = 'DaDat' THEN 'Da dat'
+                           ELSE 'Trong'
+                       END AS TrangThai 
+                FROM banan ORDER BY maban
+            """))
             items = result.fetchall()
         return templates.TemplateResponse(request, "ban.html", {"items": items, "active_page": "ban"})
     except Exception as e:
@@ -24,12 +45,12 @@ def add_ban(TenBan: str = Form(...), KhuVuc: str = Form("A"), SucChua: int = For
     try:
         with engine.connect() as conn:
             conn.execute(
-                text("INSERT INTO ban (TenBan, KhuVuc, SucChua, TrangThai) VALUES (:ten, :khu, :suc, 'Trong')"),
+                text("INSERT INTO banan (tenban, vitri, sachogoi, trangthai) VALUES (:ten, :khu, :suc, 'Trong')"),
                 {"ten": TenBan, "khu": KhuVuc, "suc": SucChua}
             )
             conn.commit()
-    except Exception:
-        pass
+    except Exception as e:
+        print("Lỗi add_ban:", e)
     return RedirectResponse(url="/ban", status_code=303)
 
 
@@ -37,26 +58,36 @@ def add_ban(TenBan: str = Form(...), KhuVuc: str = Form("A"), SucChua: int = For
 def edit_ban_form(request: Request, id: int):
     try:
         with engine.connect() as conn:
-            result = conn.execute(text("SELECT * FROM ban WHERE MaBan = :id"), {"id": id})
+            result = conn.execute(text("""
+                SELECT maban AS MaBan, tenban AS TenBan, vitri AS KhuVuc, sachogoi AS SucChua,
+                       CASE 
+                           WHEN trangthai = 'DangSuDung' THEN 'Dang su dung'
+                           WHEN trangthai = 'DaDat' THEN 'Da dat'
+                           ELSE 'Trong'
+                       END AS TrangThai 
+                FROM banan WHERE maban = :id
+            """), {"id": id})
             item = result.fetchone()
         if item is None:
             return RedirectResponse(url="/ban", status_code=303)
         return templates.TemplateResponse(request, "ban_edit.html", {"item": item, "active_page": "ban"})
-    except Exception:
+    except Exception as e:
+        print("Lỗi edit_ban_form:", e)
         return RedirectResponse(url="/ban", status_code=303)
 
 
 @router.post("/ban/edit/{id}")
 def edit_ban(id: int, TenBan: str = Form(...), KhuVuc: str = Form(...), SucChua: int = Form(...), TrangThai: str = Form(...)):
     try:
+        tt_db = normalize_status(TrangThai)
         with engine.connect() as conn:
             conn.execute(
-                text("UPDATE ban SET TenBan=:ten, KhuVuc=:khu, SucChua=:suc, TrangThai=:tt WHERE MaBan=:id"),
-                {"ten": TenBan, "khu": KhuVuc, "suc": SucChua, "tt": TrangThai, "id": id}
+                text("UPDATE banan SET tenban=:ten, vitri=:khu, sachogoi=:suc, trangthai=:tt WHERE maban=:id"),
+                {"ten": TenBan, "khu": KhuVuc, "suc": SucChua, "tt": tt_db, "id": id}
             )
             conn.commit()
-    except Exception:
-        pass
+    except Exception as e:
+        print("Lỗi edit_ban:", e)
     return RedirectResponse(url="/ban", status_code=303)
 
 
@@ -64,10 +95,10 @@ def edit_ban(id: int, TenBan: str = Form(...), KhuVuc: str = Form(...), SucChua:
 def delete_ban(id: int):
     try:
         with engine.connect() as conn:
-            conn.execute(text("DELETE FROM ban WHERE MaBan = :id"), {"id": id})
+            conn.execute(text("DELETE FROM banan WHERE maban = :id"), {"id": id})
             conn.commit()
-    except Exception:
-        pass
+    except Exception as e:
+        print("Lỗi delete_ban:", e)
     return RedirectResponse(url="/ban", status_code=303)
 
 
@@ -75,7 +106,15 @@ def delete_ban(id: int):
 def api_ban():
     try:
         with engine.connect() as conn:
-            result = conn.execute(text("SELECT * FROM ban ORDER BY MaBan"))
+            result = conn.execute(text("""
+                SELECT maban AS MaBan, tenban AS TenBan, vitri AS KhuVuc, sachogoi AS SucChua, 
+                       CASE 
+                           WHEN trangthai = 'DangSuDung' THEN 'Dang su dung'
+                           WHEN trangthai = 'DaDat' THEN 'Da dat'
+                           ELSE 'Trong'
+                       END AS TrangThai 
+                FROM banan ORDER BY maban
+            """))
             items = [dict(row._mapping) for row in result]
         return items
     except Exception as e:
@@ -85,9 +124,10 @@ def api_ban():
 @router.post("/ban/trangthai/{id}")
 def update_trangthai(id: int, TrangThai: str = Form(...)):
     try:
+        tt_db = normalize_status(TrangThai)
         with engine.connect() as conn:
-            conn.execute(text("UPDATE ban SET TrangThai=:tt WHERE MaBan=:id"), {"tt": TrangThai, "id": id})
+            conn.execute(text("UPDATE banan SET trangthai=:tt WHERE maban=:id"), {"tt": tt_db, "id": id})
             conn.commit()
-    except Exception:
-        pass
+    except Exception as e:
+        print("Lỗi update_trangthai:", e)
     return RedirectResponse(url="/ban", status_code=303)
