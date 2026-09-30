@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 {% extends "base.html" %}
 {% block title %}Chỉnh Sửa Món Ăn - Quản Lý Nhà Hàng{% endblock %}
 {% block page_title %}Chỉnh Sửa Món Ăn{% endblock %}
@@ -62,6 +63,21 @@
                 </form>
             </div>
         </div>
+=======
+﻿{% extends "base.html" %}
+{% block title %}Sửa Món Ăn{% endblock %}
+
+{% block content %}
+{% block chapter %}Chương 02 — 献立 · Sửa món{% endblock %}
+<div class="page-header"><h2><i class="bi bi-pencil"></i> Sửa Món - {{ item.TenMon }}</h2></div>
+<form method="POST" action="/monan/edit/{{ item.MaMon }}" enctype="multipart/form-data" style="max-width:650px" class="row g-3">
+    <div class="col-12"><label class="form-label">Tên Món</label><input type="text" class="form-control" name="TenMon" value="{{ item.TenMon }}" required></div>
+    <div class="col-md-4"><label class="form-label">Giá (VND)</label><input type="number" class="form-control" name="DonGia" value="{{ item.DonGia }}" required></div>
+    <div class="col-md-4"><label class="form-label">Đơn Vị Tính</label><input type="text" class="form-control" name="DonViTinh" value="{{ item.DonViTinh or '' }}"></div>
+    <div class="col-md-4">
+        <label class="form-label">Danh Mục</label>
+        <select class="form-select" name="MaDM">{% for dm in danhmuc %}<option value="{{ dm.id }}" {% if dm.id == item.MaDM %}selected{% endif %}>{{ dm.ten_danhmuc }}</option>{% endfor %}</select>
+>>>>>>> Stashed changes
     </div>
 </div>
 {% endblock %}

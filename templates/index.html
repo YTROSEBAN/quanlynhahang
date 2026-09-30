@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 {% extends "base.html" %}
 {% block title %}Tổng Quan - Quản Lý Nhà Hàng{% endblock %}
 {% block page_title %}Tổng Quan Nhà Hàng{% endblock %}
@@ -45,10 +46,20 @@
     .status-trong .ban-icon { color: #10b981; }
     .status-dadat .ban-icon { color: #f59e0b; }
     .status-dangsudung .ban-icon { color: #ef4444; }
+=======
+﻿{% extends "base.html" %}
+{% block title %}Trang Chủ - Quản Lý Nhà Hàng{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stat-card { border-left: 2px solid var(--vermilion); }
+    .ban-badge { cursor: pointer; }
+>>>>>>> Stashed changes
 </style>
 {% endblock %}
 
 {% block content %}
+<<<<<<< Updated upstream
 <!-- Metric Cards -->
 <div class="row g-4 mb-4">
     <div class="col-xl-3 col-sm-6">
@@ -81,6 +92,48 @@
             </div>
             <div class="stat-icon warning">
                 <i class="bi bi-receipt-cutoff"></i>
+=======
+<div class="hero-cue"><span>Cuộn để xem</span><span class="track"><i></i></span></div>
+
+<div class="row g-4 mb-4">
+    <div class="col-xl-3 col-md-6">
+        <div class="card stat-card primary shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div><h6 class="text-muted mb-1">Bàn</h6><h3 class="mb-0">{{ tong_ban }}</h3></div>
+                    <i class="bi bi-grid-3x3-gap fs-1"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card stat-card success shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div><h6 class="text-muted mb-1">Món Ăn</h6><h3 class="mb-0">{{ tong_monan }}</h3></div>
+                    <i class="bi bi-cup-hot fs-1"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card stat-card warning shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div><h6 class="text-muted mb-1">Hóa Đơn Hôm Nay</h6><h3 class="mb-0">{{ tong_hoadon }}</h3></div>
+                    <i class="bi bi-receipt fs-1"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card stat-card danger shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div><h6 class="text-muted mb-1">Doanh Thu</h6><h3 class="mb-0">{{ "{:,.0f}".format(doanhthu) }} VND</h3></div>
+                    <i class="bi bi-cash-coin fs-1"></i>
+                </div>
+>>>>>>> Stashed changes
             </div>
         </div>
     </div>
@@ -97,6 +150,7 @@
     </div>
 </div>
 
+<<<<<<< Updated upstream
 <div class="row g-4">
     <!-- Sơ đồ bàn -->
     <div class="col-lg-8">
@@ -179,6 +233,27 @@
 </div>
 
 <!-- Modal Chi Tiết Bàn -->
+=======
+<div class="chapters">
+    <div class="chip">
+        <span class="num">01</span>
+        <span class="tx"><b>座敷 — Sức Chứa</b><p>Ngồi chỗ nào, bao nhiêu người, khu vực nào. Bàn nào còn trống.</p></span>
+    </div>
+    <div class="chip">
+        <span class="num">02</span>
+        <span class="tx"><b>献立 — Thực Đơn</b><p>Món nào đang phục vụ, giá bao nhiêu, thuộc danh mục nào.</p></span>
+    </div>
+    <div class="chip">
+        <span class="num">03</span>
+        <span class="tx"><b>伝票 — Hóa Đơn</b><p>Mỗi đơn hàng ghi ra, ai làm, bàn nào, tổng cộng bao nhiêu.</p></span>
+    </div>
+    <div class="chip">
+        <span class="num">04</span>
+        <span class="tx"><b>職人 — Nhân Viên</b><p>Đội ngũ phục vụ, chức vụ và trạng thái làm việc.</p></span>
+    </div>
+</div>
+
+>>>>>>> Stashed changes
 <div class="modal fade" id="banModal" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">

@@ -1,0 +1,27 @@
+<!-- ═══════════════════════════════════════════════════════════
+     THANH ĐIỀU HƯỚNG — thay phần ruột của header.nav của Kage.
+     GIỮ NGUYÊN tên class/ id gốc (.brand, .nav-links#navlinks,
+     .nav-link span + span.alt, .nav-burger i) để kịch bản Kage
+     vẫn chạy được: rê chuột trượt kanji, cuộn trang, mở menu.
+
+     Các liên kết trỏ #ban #monan #hoadon #nhanvien — handler
+     a[href^="#"] sẵn có của Kage tự cuộn tới, không cần viết thêm.
+     ═══════════════════════════════════════════════════════════ -->
+<a class="brand" href="#top">
+    <svg viewBox="0 0 44 44" fill="none" aria-hidden="true">
+        <circle cx="22" cy="25" r="8.6" fill="#e0231c" fill-opacity=".9" />
+        <path d="M5 13h34M9 18.4h26M22 8.5v27" stroke="#dfe7e0" stroke-width="1.5" />
+        <path d="M14 35.5h16" stroke="#dfe7e0" stroke-width="1.2" stroke-opacity=".6" />
+    </svg>
+    <span class="brand-tx"><b>KAGE</b><i>Ẩm Thực &amp; Nghệ Thuật</i></span>
+</a>
+
+<nav class="nav-links" id="navlinks">
+    <a class="nav-link" href="#top"><span>Trang Chủ</span><span class="alt">入口</span></a>
+    <a class="nav-link" href="#ban"><span>Bàn</span><span class="alt">座敷</span></a>
+    <a class="nav-link" href="#monan"><span>Món Ăn</span><span class="alt">献立</span></a>
+    <a class="nav-link" href="#hoadon"><span>Hóa Đơn</span><span class="alt">伝票</span></a>
+    <a class="nav-link" href="#nhanvien"><span>Nhân Viên</span><span class="alt">職人</span></a>
+</nav>
+
+<button class="nav-burger" id="appBurger" aria-label="Menu" aria-controls="navlinks" aria-expanded="false"><i></i><i></i></button>

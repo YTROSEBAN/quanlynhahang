@@ -1,0 +1,77 @@
+<!-- ═══════════════════════════════════════════════════════════
+     DỮ LIỆU NHÀ HÀNG ĐẶT VÀO 3 Ô CỦA CHƯƠNG "VÙN TČNH"
+     Thay đúng khối <div class="cards"> của kage-vi.html, giữ nguyên
+     vỏ .card / .card-fr / .card-lab / .card-meta để đúng hình dạng
+     bản gốc. Không dùng data-view / data-frame / data-cursor: ô này
+     chứa số liệu thật, không phải cửa sổ WebGL.
+     ═══════════════════════════════════════════════════════════ -->
+<div class="cards" id="cards">
+
+    <article class="card ov-card" data-rv="up">
+        <div class="card-fr ov-fr">
+            <div class="card-lab"><b>Thống Kê</b><span class="jp">統計</span></div>
+            <div class="ov-kpis">
+                <div class="ov-kpi">
+                    <b>{{ tong_ban }}</b>
+                    <span>Bàn<i>座敷</i></span>
+                </div>
+                <div class="ov-kpi">
+                    <b>{{ tong_monan }}</b>
+                    <span>Món Ăn<i>献立</i></span>
+                </div>
+                <div class="ov-kpi">
+                    <b>{{ tong_hoadon }}</b>
+                    <span>Hóa Đơn<i>伝票</i></span>
+                </div>
+                <div class="ov-kpi ov-kpi--wide">
+                    <b>{{ "{:,.0f}".format(doanhthu) }}<i>VND</i></b>
+                    <span>Doanh Thu<i>売上</i></span>
+                </div>
+            </div>
+        </div>
+        <div class="card-meta"><span>Hôm nay</span><span>今日</span></div>
+    </article>
+
+    <article class="card ov-card" data-rv="up">
+        <div class="card-fr ov-fr">
+            <div class="card-lab"><b>Trạng Thái Bàn</b><span class="jp">座席</span></div>
+            <div class="ov-banlist">
+                {% for b in bans %}
+                <button type="button" class="ov-ban ov-ban--{% if b.TrangThai=='Trong' %}free{% elif b.TrangThai=='Da dat' or b.TrangThai=='Đã đặt' %}booked{% else %}busy{% endif %}"
+                        onclick="xemBanVN({{ b.MaBan }})"
+                        title="{{ b.TenBan }} — {% if b.TrangThai=='Trong' %}Trống{% elif b.TrangThai=='Da dat' or b.TrangThai=='Đã đặt' %}Đã đặt{% else %}{{ b.TrangThai }}{% endif %}">
+                    <b>{{ b.TenBan }}</b>
+                    <span>{% if b.TrangThai=='Trong' %}Trống{% elif b.TrangThai=='Da dat' or b.TrangThai=='Đã đặt' %}Đã đặt{% else %}{{ b.TrangThai }}{% endif %}</span>
+                </button>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="card-meta"><span>{{ bans | length }} chỗ xếp</span><span>座敷</span></div>
+    </article>
+
+    <article class="card ov-card" data-rv="up">
+        <div class="card-fr ov-fr">
+            <div class="card-lab"><b>Hóa Đơn Gần Đây</b><span class="jp">伝票</span></div>
+            <div class="ov-ledger">
+                {% for hd in recent_hds %}
+                <a class="ov-ledger__row" href="/hoadon/xuat/{{ hd.MaHD }}" target="_blank">
+                    <span class="ov-ledger__id">HD#{{ hd.MaHD }}</span>
+                    <span class="ov-ledger__ban">{{ hd.TenBan or '—' }}</span>
+                    <span class="ov-ledger__sum">{{ "{:,.0f}".format(hd.TongTien) }} <i>VND</i></span>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="card-meta"><span>{{ tong_hoadon }} hóa đơn</span><span>伝票</span></div>
+    </article>
+
+</div>
+
+<script>
+/* Mở chi tiết bàn: nhờ trang ngoài mở modal (nó mới có Bootstrap),
+   nếu mở trang này độc lập thì mở dữ liệu API ra tab mới. */
+function xemBanVN(id) {
+    try { if (parent && parent.xemBan) { parent.xemBan(id); return; } } catch (e) {}
+    window.open('/api/ban/' + id + '/detail', '_blank');
+}
+</script>

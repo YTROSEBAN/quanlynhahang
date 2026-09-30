@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+{% block title %}Kage 影 — Quản Lý Nhà Hàng{% endblock %}
+
+{# Kage nằm NGOÀI .shell / .main-content để chiếm đúng 100vw — không lề,
+   không khung, không bị bóp vào giữa trang. #}
+{% block above_content %}
+<section id="top" class="kage-fullbleed" aria-label="Kage">
+    <iframe
+        id="kageFrame"
+        title="Kage — Where stillness reveals the unseen"
+        src="/kage/scene"
+        sandbox="allow-scripts allow-same-origin allow-popups allow-downloads allow-forms allow-modals allow-top-navigation-by-user-activation"
+        loading="eager"></iframe>
+</section>
+{% endblock %}
+
+{% block content %}
+
+<!-- ═══════════════════════════════════════════════════════════
+     MỐC CHUYỂN — từ Kage sang phần quản lý.
+     Phần tổng quan (thống kê · trạng thái bàn · hóa đơn gần đây) nay
+     nằm BÊN TRONG trang Kage, ở /kage/scene — xem _kage_overview.html
+     ═══════════════════════════════════════════════════════════ -->
+<div class="handoff">
+    <div class="eyebrow"><span class="dot"></span> Ngoại Vi — Quản Lý</div>
+    <h1 class="display">
+        <span class="mask-line"><span>Từ đây,</span></span>
+        <span class="mask-line"><span>bắt đầu</span></span>
+        <span class="mask-line"><span>công việc thật.</span></span>
+    </h1>
+    <p class="hero-sub body">Bốn nơi bạn làm việc hằng ngày. Cuộn tiếp, hoặc dùng thanh điều hướng phía trên.</p>
+    <div class="hero-cue"><span>Cuộn để xem</span><span class="track"><i></i></span></div>
+</div>
+
+<!-- Khối "Bốn nơi bạn làm việc hằng ngày" đã chuyển vào TRONG trang Kage,
+     nằm ngay dưới dãy số 01 02 03 04 của hero — xem _kage_chapters.html -->
+
+<!-- ═══════════════════════════════════════════════════════════
+     CÁC CHỨC NĂNG — nằm ngay trên trang này, nav cuộn tới đây
+     ═══════════════════════════════════════════════════════════ -->
+<section id="ban" class="chapter-section">
+    <div class="eyebrow"><span class="dot"></span> Chương 01 — 座敷 · Sức Chứa</div>
+    {% set items = bans %}{% include "_ban.html" %}
+</section>
+
+<section id="monan" class="chapter-section">
+    <div class="eyebrow"><span class="dot"></span> Chương 02 — 献立 · Thực Đơn</div>
+    {% set items = monan_items %}{% include "_monan.html" %}
+</section>
+
+<section id="hoadon" class="chapter-section">
+    <div class="eyebrow"><span class="dot"></span> Chương 03 — 伝票 · Hóa Đơn</div>
+    {% set items = hoadon_items %}{% include "_hoadon.html" %}
+</section>
+
+<section id="nhanvien" class="chapter-section">
+    <div class="eyebrow"><span class="dot"></span> Chương 04 — 職人 · Nhân Viên</div>
+    {% set items = nhanvien_items %}{% include "_nhanvien.html" %}
+</section>
+
+<div class="modal fade" id="banModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="banModalTitle">Chi Tiết Bàn</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="banModalBody">
+                <div class="text-center py-4"><div class="spinner-border text-primary"></div><p class="mt-2">Đang tải…</p></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+async function xemBan(maBan) {
+    const modal = new bootstrap.Modal(document.getElementById('banModal'));
+    document.getElementById('banModalTitle').textContent = 'Đang tải…';
+    document.getElementById('banModalBody').innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary"></div></div>';
+    modal.show();
+    try {
+        const res = await fetch('/api/ban/' + maBan + '/detail');
+        const data = await res.json();
+        if (data.error) { document.getElementById('banModalBody').innerHTML = '<p class="text-danger">' + data.error + '</p>'; return; }
+        const b = data.ban;
+        const ttColor = b.TrangThai == 'Trong' ? 'success' : (b.TrangThai == 'Da dat' || b.TrangThai == 'Đã đặt') ? 'warning' : 'danger';
+        const ttText = b.TrangThai == 'Trong' ? 'Trống' : (b.TrangThai == 'Da dat' || b.TrangThai == 'Đã đặt') ? 'Đã đặt' : b.TrangThai;
+
+        let html = '<div class="row g-3 mb-3">';
+        html += '<div class="col-md-4"><strong>Khu vực:</strong> ' + (b.KhuVuc || '—') + '</div>';
+        html += '<div class="col-md-4"><strong>Sức chứa:</strong> ' + b.SucChua + ' chỗ</div>';
+        html += '<div class="col-md-4"><strong>Trạng thái:</strong> ' + ttText + '</div></div>';
+
+        if (data.datban.length > 0) {
+            html += '<h6 class="mt-3 mb-2"><i class="bi bi-calendar-check"></i> Đặt Bàn</h6><div class="table-responsive"><table class="table table-sm table-bordered">';
+            html += '<thead><tr><th>Khách</th><th>SĐT</th><th>Ngày đặt</th><th>Số người</th><th>Trạng thái</th></tr></thead><tbody>';
+            data.datban.forEach(d => {
+                const nd = d.NgayDat ? new Date(d.NgayDat).toLocaleDateString('vi-VN') : 'N/A';
+                html += '<tr><td>' + (d.TenKH || 'N/A') + '</td><td>' + (d.SDT || '') + '</td><td>' + nd + '</td><td>' + d.SoNguoi + '</td><td>' + d.TrangThai + '</td></tr>';
+            });
+            html += '</tbody></table></div>';
+        } else {
+            html += '<h6 class="mt-3 mb-2"><i class="bi bi-calendar-check"></i> Đặt Bàn</h6><p class="text-muted">Chưa có đặt bàn</p>';
+        }
+
+        if (data.hoadon.length > 0) {
+            html += '<h6 class="mt-3 mb-2"><i class="bi bi-receipt"></i> Hóa Đơn</h6>';
+            data.hoadon.forEach(hd => {
+                const ngay = hd.NgayLap ? new Date(hd.NgayLap).toLocaleDateString('vi-VN') : 'N/A';
+                const ttHD = hd.TrangThai == 'Da thanh toan' || hd.TrangThai == 'Đã thanh toán' ? '<span class="badge bg-success">Đã thanh toán</span>' : '<span class="badge bg-warning text-dark">Đang phục vụ</span>';
+                html += '<div class="border rounded p-2 mb-2">';
+                html += '<div class="d-flex justify-content-between"><strong>HD#' + hd.MaHD + '</strong> <span>' + ttHD + '</span></div>';
+                html += '<div class="small text-muted">Ngày: ' + ngay + ' | NV: ' + (hd.TenNV || 'N/A') + ' | Tổng: <strong class="text-danger">' + Number(hd.TongTien).toLocaleString('vi-VN') + ' VND</strong></div>';
+                html += '<div class="mt-1"><a href="/hoadon/xuat/' + hd.MaHD + '" target="_blank" class="btn btn-outline-info btn-sm"><i class="bi bi-printer"></i> In</a> <a href="/hoadon/excel/' + hd.MaHD + '" class="btn btn-outline-success btn-sm"><i class="bi bi-file-earmark-excel"></i> Excel</a></div>';
+                if (hd.chitiet && hd.chitiet.length > 0) {
+                    html += '<table class="table table-sm table-borderless mb-0 mt-1">';
+                    html += '<thead><tr><th class="small">Món</th><th class="small text-center">SL</th><th class="small text-end">Đơn giá</th><th class="small text-end">Thành tiền</th></tr></thead><tbody>';
+                    hd.chitiet.forEach(c => {
+                        html += '<tr><td class="small">' + c.TenMon + '</td><td class="small text-center">' + c.SoLuong + '</td><td class="small text-end">' + Number(c.DonGia).toLocaleString('vi-VN') + '</td><td class="small text-end fw-bold">' + Number(c.ThanhTien).toLocaleString('vi-VN') + '</td></tr>';
+                    });
+                    html += '</tbody></table>';
+                }
+                html += '</div>';
+            });
+        } else {
+            html += '<h6 class="mt-3 mb-2"><i class="bi bi-receipt"></i> Hóa Đơn</h6><p class="text-muted">Chưa có hóa đơn</p>';
+        }
+        document.getElementById('banModalBody').innerHTML = html;
+    } catch (e) {
+        document.getElementById('banModalBody').innerHTML = '<p class="text-danger">Lỗi tải dữ liệu: ' + e.message + '</p>';
+    }
+}
+
+/* ── Cuộn trang điều khiển cảnh Kage ──────────────────────────
+   Thanh cuộn duy nhất: kéo xuống → Kage chạy hết 5 chương →
+   thoát khỏi iframe → phần quản lý hiện ra.                     */
+(function () {
+    const stage = document.getElementById('top');
+    const frame = document.getElementById('kageFrame');
+    if (!stage || !frame) return;
+
+    let doc = null;
+    let maxInner = 0;
+    let ticking = false;
+
+    /* Ẩn chrome bên trong iframe để trang đọc như một khối liền mạch:
+       logo, thanh điều hướng và cả thanh cuộn riêng của kage.html đều bị
+       ẩn, vì trang chủ đã có nav và thanh cuộn riêng. File trên đĩa
+       không đổi — chỉ ẩn trong DOM khi hiển thị. */
+    const BLEND = `
+        html, body { overflow-x: hidden !important; }
+        .nav, #nav, .brand, .brand-tx, .nav-links, .nav-burger,
+        .vertical-rail, .rail, .peek, .chapter-nav,
+        [class*="pre-"], .cur-dot { display: none !important; }
+        ::-webkit-scrollbar { width: 0 !important; height: 0 !important; }
+        * { scrollbar-width: none !important; }
+    `;
+
+    const measure = () => {
+        try {
+            doc = frame.contentDocument || (frame.contentWindow && frame.contentWindow.document);
+        } catch (e) {
+            return; // khác origin — bỏ qua, cuộn lồi vẫn dùng được
+        }
+        if (!doc || !doc.documentElement) return;
+
+        if (!doc.getElementById('kage-blend-style')) {
+            const s = doc.createElement('style');
+            s.id = 'kage-blend-style';
+            s.textContent = BLEND;
+            (doc.head || doc.documentElement).appendChild(s);
+        }
+
+        /* Chuyển tiếp bánh xe chuột từ trong iframe ra trang cha.
+           Iframe sticky phủ kín màn hình nên con trỏ luôn nằm trên nó;
+           không có đoạn này, lăn chuột sẽ chỉ cuộn bên trong iframe
+           (mà đã ẩn thanh cuộn) nên trang đứng yên. Chỉ trang cha được
+           cuộn; cảnh Kage vẫn chạy qua sync() bên dưới. */
+        const win = doc.defaultView || frame.contentWindow;
+        if (win && !win.__kageWheelBound) {
+            win.__kageWheelBound = true;
+            win.addEventListener(
+                'wheel',
+                (e) => {
+                    e.preventDefault();
+                    const d = e.deltaMode === 1 ? e.deltaY * 16
+                            : e.deltaMode === 2 ? e.deltaY * window.innerHeight
+                            : e.deltaY;
+                    window.scrollBy(0, d);
+                },
+                { passive: false }
+            );
+        }
+
+        const vh = frame.clientHeight || window.innerHeight;
+        maxInner = Math.max(0, doc.documentElement.scrollHeight - vh);
+    };
+
+    function sync() {
+        const rect = stage.getBoundingClientRect();
+        const vh = frame.clientHeight || window.innerHeight;
+        // Quãng cuộn dành riêng cho Kage = chiều cao stage trừ 1 màn hình
+        const range = Math.max(1, stage.offsetHeight - vh);
+        const p = Math.min(1, Math.max(0, -rect.top / range));
+        // Chỉ hiện chrome trang chủ khi đã ra khỏi giai đoạn Kage
+        document.body.classList.toggle('in-kage', rect.top > -vh * 0.6);
+        if (!doc || !maxInner) return;
+        frame.contentWindow.scrollTo(0, p * maxInner);
+    }
+
+    frame.addEventListener('load', () => { measure(); sync(); });
+    window.addEventListener('load', () => { measure(); sync(); });
+
+    window.addEventListener('scroll', () => {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(() => { sync(); ticking = false; });
+    }, { passive: true });
+
+    window.addEventListener('resize', () => { measure(); sync(); });
+
+    // Iframe báo chiều cao nội dung thay đổi (Three.js dựng xong) → đo lại.
+    let tries = 0;
+    const poll = setInterval(() => {
+        measure(); sync();
+        if (++tries > 25) clearInterval(poll);
+    }, 400);
+})();
+</script>
+{% endblock %}

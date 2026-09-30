@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+<<<<<<< Updated upstream
     <title>{% block title %}Quản Lý Nhà Hàng{% endblock %}</title>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -104,5 +105,95 @@
         setInterval(updateTime, 1000);
     </script>
     {% block extra_js %}{% endblock %}
+=======
+    <title>{% block title %}影 KAGE — Quản Lý Nhà Hàng{% endblock %}</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+JP:wght@200;300;400;500&family=Onest:wght@200;300;400;500&display=swap" rel="stylesheet" />
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css" rel="stylesheet" />
+    <link href="/static/css/styles.css" rel="stylesheet" />
+    <link href="/static/css/theme.css" rel="stylesheet" />
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<!-- ═══ THANH ĐIỀU HƯỚNG NGANG ═══ -->
+<header class="nav" id="nav">
+    <a class="brand" href="/">
+        <svg viewBox="0 0 44 44" fill="none" aria-hidden="true">
+            <circle cx="22" cy="25" r="8.6" fill="#e0231c" fill-opacity=".9" />
+            <path d="M5 13h34M9 18.4h26M22 8.5v27" stroke="#dfe7e0" stroke-width="1.5" />
+            <path d="M14 35.5h16" stroke="#dfe7e0" stroke-width="1.2" stroke-opacity=".6" />
+        </svg>
+        <span class="brand-tx"><b>KAGE</b><i>Ẩm Thực &amp; Nghệ Thuật</i></span>
+    </a>
+
+    <nav class="nav-links" id="navlinks">
+        {% if single_page %}
+        <a class="nav-link" href="#top"><span>Trang Chủ</span><span class="alt">入口</span></a>
+        <a class="nav-link" href="#ban"><span>Bàn</span><span class="alt">座敷</span></a>
+        <a class="nav-link" href="#monan"><span>Món Ăn</span><span class="alt">献立</span></a>
+        <a class="nav-link" href="#hoadon"><span>Hóa Đơn</span><span class="alt">伝票</span></a>
+        <a class="nav-link" href="#nhanvien"><span>Nhân Viên</span><span class="alt">職人</span></a>
+        {% else %}
+        <a class="nav-link {% if active_page == 'dashboard' %}active{% endif %}" href="/"><span>Trang Chủ</span><span class="alt">入口</span></a>
+        <a class="nav-link {% if active_page == 'ban' %}active{% endif %}" href="/ban"><span>Bàn</span><span class="alt">座敷</span></a>
+        <a class="nav-link {% if active_page == 'monan' %}active{% endif %}" href="/monan"><span>Món Ăn</span><span class="alt">献立</span></a>
+        <a class="nav-link {% if active_page == 'hoadon' %}active{% endif %}" href="/hoadon"><span>Hóa Đơn</span><span class="alt">伝票</span></a>
+        <a class="nav-link {% if active_page == 'nhanvien' %}active{% endif %}" href="/nhanvien"><span>Nhân Viên</span><span class="alt">職人</span></a>
+        {% endif %}
+    </nav>
+
+        <button class="nav-burger" id="navBurger" aria-label="Menu"><i></i><i></i></button>
+</header>
+
+{% block above_content %}{% endblock %}
+
+<div class="shell">
+    <!-- Kanji dọc bên phải — y như bản gốc -->
+    <div class="vertical-rail" aria-hidden="true"><span>影の台所</span></div>
+
+    <main class="main-content">
+
+        {% if active_page == 'dashboard' and not single_page %}
+        <div class="hero-block">
+            <div class="eyebrow"><span class="dot"></span> Chương 00 — Cổng Kín</div>
+            <h1 class="display">
+                <span class="mask-line"><span>Nơi tĩnh lặng</span></span>
+                <span class="mask-line"><span>hé mở điều</span></span>
+                <span class="mask-line"><span>chưa từng thấy.</span></span>
+            </h1>
+            <p class="hero-sub body">Quản lý nhà hàng qua những ngưỡng cửa tĩnh tại, nơi nghi lễ, tay nghề và ký ức cùng định hình con đường.</p>
+        </div>
+        {% else %}
+        <div class="eyebrow"><span class="dot"></span> {% block chapter %}Kage{% endblock %}</div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+
+    </main>
+
+    <div class="footer">
+        <span class="footer-mono">Kage</span>
+        <span class="footer-jp">影</span>
+        <span class="footer-sep"></span>
+        <span class="footer-mono">&copy; 2026</span>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    (function () {
+        var b = document.getElementById('navBurger');
+        var l = document.getElementById('navlinks');
+        if (b && l) {
+            b.addEventListener('click', function () { l.classList.toggle('open'); });
+        }
+    })();
+</script>
+{% block extra_js %}{% endblock %}
+>>>>>>> Stashed changes
 </body>
 </html>

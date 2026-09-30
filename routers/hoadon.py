@@ -1,3 +1,5 @@
+﻿import logging
+
 from fastapi import APIRouter, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
@@ -6,6 +8,8 @@ from database.db import engine
 from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment, Border, Side, PatternFill
 from io import BytesIO
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
@@ -66,8 +70,13 @@ def add_hoadon(
             )
             conn.execute(text("UPDATE banan SET trangthai='DangSuDung' WHERE maban=:id"), {"id": MaBan})
             conn.commit()
+<<<<<<< Updated upstream
     except Exception as e:
         print("Lỗi add_hoadon:", e)
+=======
+    except Exception:
+        logger.exception('LOI tai dong 64')
+>>>>>>> Stashed changes
     return RedirectResponse(url="/hoadon", status_code=303)
 
 
@@ -81,8 +90,13 @@ def delete_hoadon(id: int):
             conn.execute(text("DELETE FROM ct_hoadon WHERE mahd = :id"), {"id": id})
             conn.execute(text("DELETE FROM hoadon WHERE mahd = :id"), {"id": id})
             conn.commit()
+<<<<<<< Updated upstream
     except Exception as e:
         print("Lỗi delete_hoadon:", e)
+=======
+    except Exception:
+        logger.exception('LOI tai dong 79')
+>>>>>>> Stashed changes
     return RedirectResponse(url="/hoadon", status_code=303)
 
 
@@ -95,8 +109,13 @@ def thanh_toan(id: int):
                 conn.execute(text("UPDATE banan SET trangthai='Trong' WHERE maban=:id"), {"id": hd.maban})
             conn.execute(text("UPDATE hoadon SET trangthai='DaThanhToan' WHERE mahd=:id"), {"id": id})
             conn.commit()
+<<<<<<< Updated upstream
     except Exception as e:
         print("Lỗi thanh_toan:", e)
+=======
+    except Exception:
+        logger.exception('LOI tai dong 93')
+>>>>>>> Stashed changes
     return RedirectResponse(url="/hoadon", status_code=303)
 
 

@@ -1,0 +1,156 @@
+<!-- ═══════════════════════════════════════════════════════════
+     MÓN ĂN · HÓA ĐƠN · NHÂN VIÊN — chèn ngay sau chương Bàn,
+     tất cả nằm trong cùng trang Kage. Dùng class ov-sec (không
+     phải .sec) để kịch bản gốc không truy vấn nhầm.
+     ═══════════════════════════════════════════════════════════ -->
+
+<!-- ── 04 · Thực Đơn ─────────────────────────────────────── -->
+<section class="ov-sec" id="monan">
+    <div class="ov-head">
+        <span class="ov-head__k"><b>04</b> — Thực Đơn</span>
+        <span class="ov-head__rule"></span>
+        <span class="ov-head__jp">献立</span>
+    </div>
+    <div class="cur-head" data-rv="up">
+        <h2 class="ov-h2">Món Ăn.</h2>
+        <p class="ov-h2b">Món nào đang phục vụ, giá, ảnh món, thuộc danh mục nào.</p>
+    </div>
+    <div class="ov-topbar">
+        <a class="ov-bbtn" href="/monan/add">Thêm Món</a>
+    </div>
+
+    <div class="ov-dishes">
+        {% for m in monan_items %}
+        <article class="ov-dish" data-rv="up">
+            <div class="ov-dish__fr">
+                {% if m.HinhAnh %}
+                <img src="{{ m.HinhAnh }}" alt="{{ m.TenMon }}" loading="lazy">
+                {% else %}
+                <span class="ov-dish__noimg">無</span>
+                {% endif %}
+                <div class="ov-dish__lab">
+                    <b>{{ m.TenMon }}</b>
+                    <span class="ov-dish__cat">{{ m.ten_danhmuc or '—' }}</span>
+                </div>
+            </div>
+            <div class="ov-dish__foot">
+                <span class="ov-dish__price">{{ "{:,.0f}".format(m.DonGia) }} <i>VND</i></span>
+                <span class="ov-dish__st ov-dish__st--{% if m.TrangThai=='Con ban' or m.TrangThai=='Còn bán' %}on{% else %}off{% endif %}">{% if m.TrangThai=='Con ban' or m.TrangThai=='Còn bán' %}Còn bán{% elif m.TrangThai=='Het mon' or m.TrangThai=='Hết món' %}Hết món{% elif m.TrangThai=='Ngung ban' or m.TrangThai=='Ngừng bán' %}Ngừng bán{% else %}Tạm dừng{% endif %}</span>
+            </div>
+            <div class="ov-dish__act">
+                <a href="/monan/edit/{{ m.MaMon }}">Sửa</a>
+                <a class="ov-dish__act--del" href="/monan/delete/{{ m.MaMon }}" onclick="return confirm('Xóa món {{ m.TenMon }}?')">Xóa</a>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- ── 05 · Hóa Đơn ──────────────────────────────────────── -->
+<section class="ov-sec" id="hoadon">
+    <div class="ov-head">
+        <span class="ov-head__k"><b>05</b> — Hóa Đơn</span>
+        <span class="ov-head__rule"></span>
+        <span class="ov-head__jp">伝票</span>
+    </div>
+    <div class="cur-head" data-rv="up">
+        <h2 class="ov-h2">Lập Hóa Đơn.</h2>
+        <p class="ov-h2b">Ghi chọn món, thanh toán, in ra giấy hoặc xuất Excel.</p>
+    </div>
+
+    <form class="ov-bform" id="ovHoaDonForm" method="POST" action="/hoadon/add" data-rv="up">
+        <label class="ov-bfield">
+            <span>Mã Bàn</span>
+            <select name="MaBan" required>
+                {% for b in bans %}<option value="{{ b.MaBan }}">{{ b.TenBan }}</option>{% endfor %}
+            </select>
+        </label>
+        <label class="ov-bfield">
+            <span>Nhân Viên</span>
+            <select name="MaNV" required>
+                {% for nv in nhanviens %}<option value="{{ nv.MaNV }}">{{ nv.HoTen }}</option>{% endfor %}
+            </select>
+        </label>
+        <div class="ov-bfield ov-bfield--grow">
+            <span>Món Ăn</span>
+            <div id="ovMonList" class="ov-monlist">
+                <div class="ov-monrow">
+                    <select name="MaMon[]" required>
+                        {% for m in monans %}<option value="{{ m.MaMon }}">{{ m.TenMon }} — {{ "{:,.0f}".format(m.DonGia) }}</option>{% endfor %}
+                    </select>
+                    <input type="number" name="SoLuong[]" value="1" min="1" aria-label="Số lượng">
+                </div>
+            </div>
+        </div>
+        <div class="ov-bbtns">
+            <button type="button" class="ov-bbtn ov-bbtn--ghost" id="ovThemMon">Thêm món</button>
+            <button class="ov-bbtn" type="submit">Tạo Hóa Đơn</button>
+        </div>
+    </form>
+
+    <div class="cur ov-les" id="ovHoaDonList">
+        {% for hd in hoadon_items %}
+        <div class="les ov-les__row" data-rv="up">
+            <span class="k">{{ "%02d" | format(loop.index) }}</span>
+            <h3>HD#{{ hd.MaHD }}<em>{{ hd.TenBan or '—' }}</em></h3>
+            <p>{{ hd.NgayLap.strftime('%d/%m/%Y %H:%M') if hd.NgayLap else '—' }}{% if hd.TenNV %} · {{ hd.TenNV }}{% endif %}</p>
+            <span class="ov-les__t">
+                <i class="ov-les__st ov-les__st--{% if hd.TrangThai=='Da thanh toan' or hd.TrangThai=='Đã thanh toán' %}free{% else %}booked{% endif %}">{% if hd.TrangThai=='Da thanh toan' or hd.TrangThai=='Đã thanh toán' %}Đã thanh toán{% else %}Đang phục vụ{% endif %}</i>
+                <b class="ov-sum">{{ "{:,.0f}".format(hd.TongTien) }} <i>VND</i></b>
+                {% if hd.TrangThai!='Da thanh toan' and hd.TrangThai!='Đã thanh toán' %}
+                <a class="ov-les__btn" href="/hoadon/thanhtoan/{{ hd.MaHD }}" onclick="return confirm('Xác nhận thanh toán?')">Thanh toán</a>
+                {% endif %}
+                <a class="ov-les__btn" href="/hoadon/xuat/{{ hd.MaHD }}" target="_blank">In</a>
+                <a class="ov-les__btn" href="/hoadon/excel/{{ hd.MaHD }}">Excel</a>
+                <a class="ov-les__btn ov-les__btn--del" href="/hoadon/delete/{{ hd.MaHD }}" onclick="return confirm('Xóa hóa đơn?')">Xóa</a>
+            </span>
+            <i class="bar"></i>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- ── 06 · Nhân Viên ────────────────────────────────────── -->
+<section class="ov-sec" id="nhanvien">
+    <div class="ov-head">
+        <span class="ov-head__k"><b>06</b> — Nhân Viên</span>
+        <span class="ov-head__rule"></span>
+        <span class="ov-head__jp">職人</span>
+    </div>
+    <div class="cur-head" data-rv="up">
+        <h2 class="ov-h2">Nhân Viên.</h2>
+        <p class="ov-h2b">Đội ngũ phục vụ, chức vụ, tài khoản đăng nhập và trạng thái làm việc.</p>
+    </div>
+    <div class="ov-topbar">
+        <a class="ov-bbtn" href="/nhanvien/add">Thêm Nhân Viên</a>
+    </div>
+
+    <div class="cur ov-les" id="ovNhanVienList">
+        {% for nv in nhanvien_items %}
+        <div class="les ov-les__row" data-rv="up">
+            <span class="k">{{ "%02d" | format(loop.index) }}</span>
+            <h3>{{ nv.HoTen }}<em>{{ nv.ChucVu }}</em></h3>
+            <p>{% if nv.GioiTinh %}{{ nv.GioiTinh }} · {% endif %}{% if nv.SDT %}{{ nv.SDT }} · {% endif %}{% if nv.Email %}{{ nv.Email }}{% endif %}</p>
+            <span class="ov-les__t">
+                <i class="ov-les__st ov-les__st--{% if nv.TrangThai=='Dang lam' %}free{% else %}busy{% endif %}">{% if nv.TrangThai=='Dang lam' %}Đang làm{% else %}Nghỉ việc{% endif %}</i>
+                <a class="ov-les__btn" href="/nhanvien/edit/{{ nv.MaNV }}">Sửa</a>
+                <a class="ov-les__btn ov-les__btn--del" href="/nhanvien/delete/{{ nv.MaNV }}" onclick="return confirm('Xóa {{ nv.HoTen }}?')">Xóa</a>
+            </span>
+            <i class="bar"></i>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<script>
+/* Thêm dòng món cho hóa đơn */
+(function () {
+    var btn = document.getElementById('ovThemMon');
+    var list = document.getElementById('ovMonList');
+    if (!btn || !list) return;
+    btn.addEventListener('click', function () {
+        var row = list.querySelector('.ov-monrow');
+        if (row) list.appendChild(row.cloneNode(true));
+    });
+})();
+</script>

@@ -1,0 +1,62 @@
+<!-- ═══════════════════════════════════════════════════════════
+     BỐN NƠI LÀM VIỆC — chèn ngay dưới dãy số 01 02 03 04 của hero.
+     Dùng class riêng ov-chip / ov-chapters, KHÔNG dùng .chip và
+     .data-chip để không lẫn vào chip điều hướng của kịch bản Kage.
+     Bấm chip mở ở trang ngoài (target="_parent") để tới đúng khu vực.
+     ═══════════════════════════════════════════════════════════ -->
+<div class="ov-chapters" id="ovChapters">
+    <div class="ov-chapters__head">
+        <span class="ov-chapters__dot"></span>
+        <span>Ngoại Vi — Nghiệp Vụ</span>
+    </div>
+    <h3 class="ov-chapters__title">Bốn nơi bạn làm việc hằng ngày.</h3>
+
+    <div class="ov-chapters__grid">
+        <button type="button" class="ov-chip" data-go="ban">
+            <span class="ov-chip__num">01</span>
+            <span class="ov-chip__tx">
+                <b>座敷 — Sức Chứa</b>
+                <p>Sức chứa mỗi bàn, khu vực xếp chỗ, trạng thái bàn đang trống hay đã đặt.</p>
+            </span>
+        </button>
+        <button type="button" class="ov-chip" data-go="monan">
+            <span class="ov-chip__num">02</span>
+            <span class="ov-chip__tx">
+                <b>献立 — Thực Đơn</b>
+                <p>Món nào đang phục vụ, giá, ảnh món, thuộc danh mục nào.</p>
+            </span>
+        </button>
+        <button type="button" class="ov-chip" data-go="hoadon">
+            <span class="ov-chip__num">03</span>
+            <span class="ov-chip__tx">
+                <b>伝票 — Hóa Đơn</b>
+                <p>Lập đơn, ghi chi tiết món, thanh toán, in ra giấy hoặc xuất Excel.</p>
+            </span>
+        </button>
+        <button type="button" class="ov-chip" data-go="nhanvien">
+            <span class="ov-chip__num">04</span>
+            <span class="ov-chip__tx">
+                <b>職人 — Nhân Viên</b>
+                <p>Đội ngũ phục vụ, chức vụ, tài khoản đăng nhập và trạng thái làm việc.</p>
+            </span>
+        </button>
+    </div>
+</div>
+
+<script>
+/* Bấm chip thì cuộn tới đúng khu vực trong chính trang này.
+   Dùng scrollTo (không phải điều hướng) nên không vướng sandbox
+   và giữ nguyên cảnh 3D đang chạy. */
+(function () {
+    document.addEventListener('click', function (e) {
+        var b = e.target && e.target.closest ? e.target.closest('[data-go]') : null;
+        if (!b) return;
+        e.preventDefault();
+        var el = document.getElementById(b.getAttribute('data-go'));
+        if (!el) return;
+        var top = el.getBoundingClientRect().top + window.scrollY - 92;
+        window.scrollTo({ top: top, behavior: 'smooth' });
+    });
+})();
+</script>
+</div>

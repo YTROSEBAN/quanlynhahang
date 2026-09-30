@@ -1,0 +1,108 @@
+<!-- ═══════════════════════════════════════════════════════════
+     PHẦN QUẢN LÝ BÀN — thay chương "Tay Nghề Thiêng" của Kage.
+     Giữ nguyên id="lessons" + data-cam="3" để cảnh vẫn bám theo,
+     giữ lớp .fg (tranh viền) và tiêu đề sec-head của bản gốc.
+     Danh sách bàn kế thừa đúng lưới .les của bản gốc:
+     [số thứ tự] [tên bàn] [khu vực · sức chứa] [trạng thái · thao tác]
+     ═══════════════════════════════════════════════════════════ -->
+<section class="sec" id="lessons" data-cam="3">
+    <!-- foreground: a low periphery for the atlas — wall fragment, basalt, one stand of grass -->
+    <div class="fg" data-fg="lessons" aria-hidden="true">
+        <span class="fg-el fg-wall fg-el--flip" data-fg-in="right">
+            <img src="/landing-pages/secret-pathways-assets/foreground/png/temple-wall.webp" alt="" width="1536" height="884" loading="lazy" decoding="async">
+        </span>
+        <span class="fg-el fg-stones" data-fg-in="up">
+            <img src="/landing-pages/secret-pathways-assets/foreground/png/basalt-stones.webp" alt="" width="1536" height="996" loading="lazy" decoding="async">
+        </span>
+        <span class="fg-el fg-grass" data-fg-in="up">
+            <img src="/landing-pages/secret-pathways-assets/foreground/png/tall-grass.webp" alt="" width="1716" height="916" loading="lazy" decoding="async">
+        </span>
+    </div>
+
+    <div class="sec-head" data-rv="fade">
+        <span class="k"><b>03</b> — Quản Lý Bàn</span><span class="rule"></span><span class="k jp">座敷</span>
+    </div>
+
+    <div class="cur-head" data-rv="up">
+        <h2 class="ov-h2">Thêm Bàn Mới.</h2>
+        <p class="ov-h2b">Sức chứa mỗi bàn, khu vực xếp chỗ, trạng thái bàn đang trống hay đã đặt. Mọi thao tác nằm ngay tại đây.</p>
+    </div>
+
+    <!-- Ô nhập: Tên Bàn · Khu Vực · Sức Chứa -->
+    <form class="ov-bform" id="ovBanForm" method="POST" action="/ban/add" data-rv="up">
+        <label class="ov-bfield">
+            <span>Tên Bàn</span>
+            <input type="text" name="TenBan" required placeholder="VD: A-01" autocomplete="off">
+        </label>
+        <label class="ov-bfield">
+            <span>Khu Vực</span>
+            <select name="KhuVuc">
+                <option>A</option><option>B</option><option>C</option>
+                <option>D</option><option>E</option>
+            </select>
+        </label>
+        <label class="ov-bfield ov-bfield--sm">
+            <span>Sức Chứa</span>
+            <input type="number" name="SucChua" value="4" min="1">
+        </label>
+        <button class="ov-bbtn" type="submit">Thêm Bàn</button>
+    </form>
+
+    <!-- Danh sách bàn, dùng đúng lưới .les của bản gốc -->
+    <div class="cur ov-les" id="ovLes">
+        {% for item in bans %}
+        <div class="les ov-les__row" data-rv="up">
+            <span class="k">{{ "%02d" | format(loop.index) }}</span>
+            <h3>{{ item.TenBan }}<em>{{ item.KhuVuc }}</em></h3>
+            <p>{{ item.SucChua }} chỗ · sức chứa</p>
+            <span class="ov-les__t">
+                <i class="ov-les__st ov-les__st--{% if item.TrangThai=='Trong' %}free{% elif item.TrangThai=='Da dat' or item.TrangThai=='Đã đặt' %}booked{% else %}busy{% endif %}">{% if item.TrangThai=='Trong' %}Trống{% elif item.TrangThai=='Da dat' or item.TrangThai=='Đã đặt' %}Đã đặt{% else %}{{ item.TrangThai }}{% endif %}</i>
+                <a class="ov-les__btn" href="/ban/edit/{{ item.MaBan }}" target="_parent">Sửa</a>
+                <a class="ov-les__btn ov-les__btn--del" href="/ban/delete/{{ item.MaBan }}" target="_parent" onclick="return confirm('Xóa bàn {{ item.TenBan }}?')">Xóa</a>
+            </span>
+            <i class="bar"></i>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<script>
+/* Khôi phục vị trí đọc sau khi tạo bàn xong */
+(function () {
+    try {
+        var y = sessionStorage.getItem('ovRestore');
+        if (y) {
+            sessionStorage.removeItem('ovRestore');
+            requestAnimationFrame(function () {
+                window.scrollTo(0, +y);
+            });
+        }
+    } catch (err) {}
+})();
+
+/* Gửi bàn mới bằng fetch rồi tải lại trang, không rời trang. */
+(function () {
+    var form = document.getElementById('ovBanForm');
+    if (!form) return;
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var btn = form.querySelector('.ov-bbtn');
+        var old = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = 'Đang lưu…';
+        fetch('/ban/add', {
+            method: 'POST',
+            body: new URLSearchParams(new FormData(form)),
+            headers: { 'X-Requested-With': 'fetch' }
+        }).then(function () {
+            /* Tải lại trang để dữ liệu mới hiện. Giữ nguyên vị trí đang
+               đọc bằng cách nhớ lại rồi khôi phục sau khi nạp. */
+            try { sessionStorage.setItem('ovRestore', String(window.scrollY)); } catch (err) {}
+            location.reload();
+        }).catch(function () {
+            btn.disabled = false;
+            btn.textContent = old;
+        });
+    });
+})();
+</script>

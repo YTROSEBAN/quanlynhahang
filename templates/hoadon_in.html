@@ -4,36 +4,84 @@
     <meta charset="utf-8" />
     <title>Hóa Đơn #{{ hd.MaHD }}</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+JP:wght@300;400&family=Onest:wght@300;400&display=swap');
+
+        :root {
+          --ink: #05070a; --ink2: #0a0e12; --bone: #dfe7e0; --bone-dim: #aab4ad;
+          --bone-mute: #79847e; --vermilion: #e0231c;
+          --line: rgba(223,231,224,.13); --line-soft: rgba(223,231,224,.07);
+        }
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Times New Roman', Times, serif; font-size: 14px; color: #000; background: #fff; padding: 20px; }
-        .invoice { max-width: 400px; margin: 0 auto; }
-        .header { text-align: center; border-bottom: 2px dashed #000; padding-bottom: 10px; margin-bottom: 10px; }
-        .header h2 { font-size: 20px; letter-spacing: 2px; }
-        .header p { font-size: 12px; color: #555; }
-        .info-row { display: flex; justify-content: space-between; margin: 4px 0; font-size: 13px; }
-        .info-row .label { color: #555; }
-        table { width: 100%; border-collapse: collapse; margin: 10px 0; }
-        th, td { padding: 4px 0; text-align: left; font-size: 13px; }
-        th { border-bottom: 1px solid #000; font-weight: bold; }
-        td { border-bottom: 1px dotted #ccc; }
+        body {
+            font-family: 'Onest', sans-serif; font-size: 13px; font-weight: 300; line-height: 1.68;
+            color: var(--bone-dim); background: var(--ink);
+            padding: 32px 20px; -webkit-font-smoothing: antialiased;
+        }
+        .invoice {
+            max-width: 400px; margin: 0 auto; background: var(--ink2);
+            padding: 36px 32px; border: 1px solid var(--line); border-top: 2px solid var(--vermilion);
+            box-shadow: 0 24px 60px rgba(3,6,8,.72);
+        }
+        .header { text-align: left; padding-bottom: 20px; margin-bottom: 22px; border-bottom: 1px solid var(--line); }
+        .header h2 {
+            font-family: 'Noto JP', sans-serif; font-size: 15px; font-weight: 400;
+            letter-spacing: .3em; text-transform: uppercase; color: var(--bone);
+        }
+        .header h2 .jp { color: var(--vermilion); margin-left: 8px; }
+        .header p { font-size: 9px; color: var(--bone-mute); letter-spacing: .26em; text-transform: uppercase; margin-top: 10px; }
+
+        .info-row { display: flex; justify-content: space-between; gap: 14px; margin: 7px 0; font-size: 12.5px; }
+        .info-row .label { color: var(--bone-mute); font-size: 9px; letter-spacing: .24em; text-transform: uppercase; padding-top: 3px; }
+        .info-row > span:last-child { text-align: right; color: var(--bone); }
+
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { padding: 9px 0; text-align: left; font-size: 12.5px; }
+        th {
+            border-bottom: 1px solid var(--line); color: var(--bone-mute);
+            font-size: 9px; text-transform: uppercase; letter-spacing: .2em; font-weight: 500;
+        }
+        td { border-bottom: 1px solid var(--line-soft); }
         .text-right { text-align: right; }
-        .total-row { border-top: 2px solid #000; font-weight: bold; font-size: 15px; }
-        .total-row td { padding: 6px 0; border-bottom: none; }
-        .footer { text-align: center; border-top: 2px dashed #000; padding-top: 10px; margin-top: 15px; font-size: 12px; color: #555; }
-        .watermark { text-align: center; font-size: 11px; color: #999; margin-top: 5px; }
-        .btn-print { position: fixed; top: 10px; right: 10px; padding: 8px 16px; background: #0d6efd; color: #fff; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; }
-        .btn-back { position: fixed; top: 10px; left: 10px; padding: 8px 16px; background: #6c757d; color: #fff; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; text-decoration: none; }
-        @media print { .btn-print, .btn-back { display: none; } body { padding: 0; } }
+        .total-row { border-top: 1px solid var(--bone-deep); border-bottom: none; }
+        .total-row td { padding: 12px 0; border-bottom: none; font-size: 14px; color: var(--bone); }
+        .total-row td:last-child { color: var(--vermilion); letter-spacing: .04em; }
+
+        .footer { text-align: center; border-top: 1px solid var(--line); padding-top: 20px; margin-top: 26px; }
+        .footer p { font-size: 10px; color: var(--bone-mute); letter-spacing: .24em; text-transform: uppercase; }
+        .footer p:first-child { color: var(--bone-dim); letter-spacing: .16em; text-transform: none; font-size: 12.5px; }
+
+        .btn-print, .btn-back {
+            position: fixed; top: 18px; padding: 10px 18px; border: 1px solid var(--line);
+            background: transparent; color: var(--bone-dim); cursor: pointer;
+            font-size: 9px; letter-spacing: .24em; text-transform: uppercase;
+            font-family: 'Onest', sans-serif; font-weight: 500; text-decoration: none;
+            transition: all .3s ease;
+        }
+        .btn-back { left: 18px; }
+        .btn-print { right: 18px; }
+        .btn-print:hover, .btn-back:hover { border-color: var(--vermilion); color: var(--bone); }
+
+        @media print {
+            .btn-print, .btn-back { display: none; }
+            body { background: #fff; padding: 0; }
+            .invoice { box-shadow: none; background: #fff; border: 1px solid #ccc; border-top: 2px solid #e0231c; max-width: 100%; }
+            .header h2, .info-row > span:last-child, .total-row td { color: #000; }
+            .header p, .info-row .label, .footer p { color: #555; }
+            th { color: #555; border-color: #ccc; }
+            td { border-color: #eee; }
+            .total-row td:last-child { color: #e0231c; }
+        }
     </style>
 </head>
 <body>
     <a href="/hoadon" class="btn-back">← Quay lại</a>
-    <button class="btn-print" onclick="window.print()">🖨️ In hóa đơn</button>
+    <button class="btn-print" onclick="window.print()">In hóa đơn</button>
 
     <div class="invoice">
         <div class="header">
-            <h2>NHÀ HÀNG</h2>
-            <p>Quản Lý Nhà Hàng</p>
+            <h2>KAGE<span class="jp">影</span></h2>
+            <p>Hóa đơn bán hàng</p>
         </div>
 
         <div class="info-row"><span class="label">Hóa đơn:</span><span><strong>#{{ hd.MaHD }}</strong></span></div>

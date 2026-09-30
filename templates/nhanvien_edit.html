@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 {% extends "base.html" %}
 {% block title %}Cập Nhật Nhân Viên - Quản Lý Nhà Hàng{% endblock %}
 {% block page_title %}Cập Nhật Thông Tin Nhân Sự{% endblock %}
@@ -62,6 +63,22 @@
                 </form>
             </div>
         </div>
+=======
+﻿{% extends "base.html" %}
+{% block title %}Sửa Nhân Viên{% endblock %}
+
+{% block content %}
+{% block chapter %}Chương 04 — 職人 · Sửa nhân viên{% endblock %}
+<div class="page-header"><h2><i class="bi bi-pencil"></i> Sửa Nhân Viên - {{ item.HoTen }}</h2></div>
+<form method="POST" action="/nhanvien/edit/{{ item.MaNV }}" style="max-width:650px" class="row g-3">
+    <div class="col-12"><label class="form-label">Họ Tên</label><input type="text" class="form-control" name="HoTen" value="{{ item.HoTen }}" required></div>
+    <div class="col-md-6">
+        <label class="form-label">Giới Tính</label>
+        <select class="form-select" name="GioiTinh">
+            <option {% if item.GioiTinh=='Nam' %}selected{% endif %}>Nam</option>
+            <option {% if item.GioiTinh=='Nữ' %}selected{% endif %}>Nữ</option>
+        </select>
+>>>>>>> Stashed changes
     </div>
 </div>
 {% endblock %}

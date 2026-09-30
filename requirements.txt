@@ -3,5 +3,10 @@ uvicorn
 sqlalchemy
 pymysql
 jinja2
+<<<<<<< Updated upstream
 python-multipart
 openpyxl
+=======
+openpyxl
+python-multipart
+>>>>>>> Stashed changes
