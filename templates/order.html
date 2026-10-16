@@ -1,98 +1,633 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đặt món</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css" rel="stylesheet" />
-    <link href="/static/css/styles.css" rel="stylesheet" />
-</head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <div class="container px-4 px-lg-5">
-            <a class="navbar-brand" href="/">Start Bootstrap</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
-            <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
-                    <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/about">About</a></li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Shop</a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="/menu/add">Thêm Menu</a></li>
-                            <li><hr class="dropdown-divider" /></li>
-                            <li><a class="dropdown-item" href="/menu/list">Danh sách Menu</a></li>
-                            <li><a class="dropdown-item" href="/orders">Đơn hàng</a></li>
-                        </ul>
-                    </li>
-                </ul>
-                <form class="d-flex">
-                    <button class="btn btn-outline-dark" type="submit">
-                        <i class="bi-cart-fill me-1"></i>
-                        Cart
-                        <span class="badge bg-dark text-white ms-1 rounded-pill">0</span>
-                    </button>
-                </form>
+{% extends "base.html" %}
+{% block title %}Gọi Món &amp; Order — 影 KAGE{% endblock %}
+
+{% block extra_css %}
+<style>
+    .order-container {
+        display: grid;
+        grid-template-columns: 1fr 380px;
+        gap: 24px;
+        align-items: start;
+    }
+    @media (max-width: 991px) {
+        .order-container {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* Category Filter Pills */
+    .cat-pill {
+        cursor: pointer;
+        padding: 8px 16px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #dfe7e0;
+        font-size: 13px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+        user-select: none;
+    }
+    .cat-pill:hover {
+        background: rgba(224, 35, 28, 0.15);
+        border-color: #e0231c;
+        color: #fff;
+    }
+    .cat-pill.active {
+        background: #e0231c;
+        border-color: #e0231c;
+        color: #fff;
+        box-shadow: 0 4px 14px rgba(224, 35, 28, 0.4);
+    }
+
+    /* Dish Cards */
+    .dish-card {
+        background: #0d131a;
+        border: 1px solid rgba(223, 231, 224, 0.08);
+        border-radius: 12px;
+        overflow: hidden;
+        transition: all 0.25s ease;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+    .dish-card:hover {
+        transform: translateY(-3px);
+        border-color: rgba(224, 35, 28, 0.5);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    }
+    .dish-img-wrap {
+        position: relative;
+        width: 100%;
+        height: 140px;
+        background: #141b24;
+        overflow: hidden;
+    }
+    .dish-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+    .dish-card:hover .dish-img {
+        transform: scale(1.05);
+    }
+    .dish-badge {
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        font-size: 11px;
+        padding: 3px 8px;
+        border-radius: 4px;
+        background: rgba(5, 7, 10, 0.85);
+        color: #c9a24a;
+        border: 1px solid rgba(201, 162, 74, 0.3);
+    }
+    .dish-body {
+        padding: 14px;
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+        justify-content: space-between;
+    }
+    .dish-title {
+        font-size: 15px;
+        font-weight: 600;
+        color: #dfe7e0;
+        margin-bottom: 4px;
+        line-height: 1.3;
+    }
+    .dish-desc {
+        font-size: 12px;
+        color: #8b9791;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        margin-bottom: 12px;
+        min-height: 32px;
+    }
+    .dish-foot {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .dish-price {
+        font-size: 15px;
+        font-weight: 700;
+        color: #e0231c;
+    }
+    .btn-add-cart {
+        background: rgba(224, 35, 28, 0.15);
+        border: 1px solid #e0231c;
+        color: #fff;
+        padding: 5px 12px;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+    .btn-add-cart:hover {
+        background: #e0231c;
+        color: #fff;
+    }
+
+    /* Cart Sidebar */
+    .cart-box {
+        background: #0d131a;
+        border: 1px solid rgba(223, 231, 224, 0.1);
+        border-radius: 12px;
+        position: sticky;
+        top: 80px;
+        display: flex;
+        flex-direction: column;
+        max-height: calc(100vh - 100px);
+    }
+    .cart-header {
+        padding: 16px 20px;
+        border-bottom: 1px solid rgba(223, 231, 224, 0.08);
+        background: #111822;
+        border-radius: 12px 12px 0 0;
+    }
+    .cart-items {
+        padding: 16px 20px;
+        overflow-y: auto;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    .cart-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 12px;
+        background: #141b24;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .cart-item-name {
+        font-size: 13px;
+        font-weight: 600;
+        color: #dfe7e0;
+        max-width: 140px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .cart-item-price {
+        font-size: 12px;
+        color: #8b9791;
+    }
+    .qty-ctrl {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .qty-btn {
+        width: 24px;
+        height: 24px;
+        border-radius: 4px;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        background: rgba(255, 255, 255, 0.05);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+    .qty-btn:hover {
+        background: #e0231c;
+        border-color: #e0231c;
+    }
+    .qty-num {
+        font-size: 13px;
+        font-weight: 700;
+        min-width: 18px;
+        text-align: center;
+    }
+    .cart-footer {
+        padding: 16px 20px;
+        border-top: 1px solid rgba(223, 231, 224, 0.08);
+        background: #111822;
+        border-radius: 0 0 12px 12px;
+    }
+    .total-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 14px;
+    }
+    .total-amount {
+        font-size: 20px;
+        font-weight: 700;
+        color: #e0231c;
+    }
+
+    /* Existing items list */
+    .existing-section {
+        background: rgba(201, 162, 74, 0.05);
+        border: 1px dashed rgba(201, 162, 74, 0.3);
+        border-radius: 8px;
+        padding: 10px;
+        margin-bottom: 12px;
+    }
+    .badge-existing {
+        font-size: 10px;
+        background: rgba(201, 162, 74, 0.2);
+        color: #c9a24a;
+        padding: 2px 6px;
+        border-radius: 3px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-3 px-lg-4 py-3">
+
+    <!-- Top Action Bar -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4 p-3 rounded-3" style="background: #0d131a; border: 1px solid rgba(223,231,224,0.08);">
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+            <h4 class="mb-0 text-white d-flex align-items-center gap-2">
+                <i class="bi bi-receipt-cutoff text-danger"></i> Gọi Món Tại Bàn
+            </h4>
+            
+            <!-- Chọn Bàn Ăn -->
+            <div class="d-flex align-items-center gap-2">
+                <label class="text-muted small fw-medium mb-0"><i class="bi bi-grid-3x3-gap me-1"></i>Bàn:</label>
+                <select id="selectBan" class="form-select form-select-sm bg-dark text-light border-secondary" style="min-width: 170px;" onchange="changeTable(this.value)">
+                    <option value="">-- Chọn Bàn Phục Vụ --</option>
+                    {% for b in bans %}
+                    <option value="{{ b.MaBan }}" {% if selected_maban == b.MaBan %}selected{% endif %}>
+                        {{ b.TenBan }} ({{ b.TrangThai }})
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Nhân Viên Ghi Order -->
+            <div class="d-flex align-items-center gap-2">
+                <label class="text-muted small fw-medium mb-0"><i class="bi bi-person-badge me-1"></i>Nhân viên:</label>
+                <select id="selectNhanVien" class="form-select form-select-sm bg-dark text-light border-secondary" style="min-width: 160px;">
+                    {% for nv in nhanviens %}
+                    <option value="{{ nv.MaNV }}" {% if cur_user and cur_user.manv == nv.MaNV %}selected{% endif %}>
+                        {{ nv.HoTen }}
+                    </option>
+                    {% endfor %}
+                </select>
             </div>
         </div>
-    </nav>
 
-    <header class="bg-dark py-5">
-        <div class="container px-4 px-lg-5 my-5">
-            <div class="text-center text-white">
-                <h1 class="display-4 fw-bolder">Đặt món</h1>
-                <p class="lead fw-normal text-white-50 mb-0">{{ item.Name }}</p>
-            </div>
+        <!-- Thanh Tìm Kiếm Món Ăn -->
+        <div class="input-group input-group-sm" style="max-width: 280px;">
+            <span class="input-group-text bg-dark border-secondary text-muted"><i class="bi bi-search"></i></span>
+            <input type="text" id="searchInput" class="form-control bg-dark text-light border-secondary" placeholder="Tìm tên món ăn..." onkeyup="filterDishes()">
         </div>
-    </header>
+    </div>
 
-    <section class="py-5">
-        <div class="container px-4 px-lg-5">
-            <div class="row justify-content-center">
-                <div class="col-lg-6">
-                    <div class="card mb-4">
-                        <div class="card-body">
-                            <div class="text-center mb-3">
-                                {% if item.Image %}
-                                <img src="{{ item.Image }}" class="img-fluid rounded" style="max-height:250px">
-                                {% else %}
-                                <img src="https://dummyimage.com/450x300/dee2e6/6c757d.jpg" class="img-fluid rounded">
-                                {% endif %}
+    <!-- Category Filter Pills -->
+    <div class="d-flex align-items-center gap-2 overflow-auto pb-3 mb-3" style="scrollbar-width: thin;">
+        <div class="cat-pill active" data-dm="all" onclick="filterCategory('all', this)">
+            <i class="bi bi-grid-fill me-1"></i> Tất cả món
+        </div>
+        {% for dm in danhmucs %}
+        <div class="cat-pill" data-dm="{{ dm.MaDM }}" onclick="filterCategory('{{ dm.MaDM }}', this)">
+            {{ dm.TenDM }}
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Main Content Area: Menu Grid & Cart Sidebar -->
+    <div class="order-container">
+        
+        <!-- Cột Thực Đơn (Grid Món Ăn) -->
+        <div>
+            <div class="row g-3" id="dishesGrid">
+                {% for mon in monans %}
+                <div class="col-sm-6 col-md-4 col-xl-3 dish-item" data-dm="{{ mon.MaDM }}" data-name="{{ mon.TenMon|lower }}">
+                    <div class="dish-card">
+                        <div class="dish-img-wrap">
+                            {% if mon.HinhAnh %}
+                            <img src="{{ mon.HinhAnh }}" alt="{{ mon.TenMon }}" class="dish-img" onerror="this.src='/static/assets/img/dish_placeholder.svg';">
+                            {% else %}
+                            <div class="w-100 h-100 d-flex align-items-center justify-content-center text-muted" style="background: #141b24;">
+                                <i class="bi bi-cup-hot fs-1 opacity-25"></i>
                             </div>
-                            <h4 class="text-center">{{ item.Name }}</h4>
-                            <p class="text-center text-muted">Giá: <strong>{{ item.Price }} VND</strong> | Size: <strong>{{ item.Size }}</strong></p>
+                            {% endif %}
+                            <span class="dish-badge">{{ mon.TenDM or 'Đặc sản' }}</span>
+                        </div>
+                        <div class="dish-body">
+                            <div>
+                                <h6 class="dish-title">{{ mon.TenMon }}</h6>
+                                <p class="dish-desc">{{ mon.MoTa or 'Hương vị thơm ngon chế biến theo công thức nhà hàng Kage.' }}</p>
+                            </div>
+                            <div class="dish-foot">
+                                <span class="dish-price">{{ "{:,.0f}".format(mon.Gia) }} ₫</span>
+                                <button type="button" class="btn btn-add-cart" onclick="addToCart({{ mon.MaMon }}, '{{ mon.TenMon|replace("'", "\\'") }}', {{ mon.Gia }})">
+                                    <i class="bi bi-plus-lg"></i> Thêm
+                                </button>
+                            </div>
                         </div>
                     </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <div id="noResults" class="text-center py-5 text-muted d-none">
+                <i class="bi bi-search fs-1 d-block mb-2"></i>
+                <p>Không tìm thấy món ăn phù hợp</p>
+            </div>
+        </div>
 
-                    <form method="POST" action="/order/{{ item.ID }}">
-                        <div class="mb-3">
-                            <label class="form-label">Họ tên</label>
-                            <input type="text" name="customer_name" class="form-control" required>
+        <!-- Cột Giỏ Hàng & Tóm Tắt Đơn Hàng (Sticky) -->
+        <div class="cart-box shadow">
+            <div class="cart-header d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="mb-0 text-white"><i class="bi bi-cart3 text-danger me-1"></i> Món Đã Chọn</h5>
+                    <small class="text-muted" id="cartTableLabel">
+                        {% if selected_ban %}
+                        Bàn: <b class="text-white">{{ selected_ban.TenBan }}</b>
+                        {% else %}
+                        <i>Chưa chọn bàn</i>
+                        {% endif %}
+                    </small>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size: 11px;" onclick="clearCart()">
+                    <i class="bi bi-trash"></i> Xóa
+                </button>
+            </div>
+
+            <div class="cart-items" id="cartItemsList">
+                
+                <!-- Hiển thị các món đã gọi trước đó nếu bàn đang mở hóa đơn -->
+                {% if active_hoadon and existing_items %}
+                <div class="existing-section">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-warning small fw-bold"><i class="bi bi-clock-history me-1"></i>Đã gọi trước (#{ active_hoadon.mahd }):</span>
+                        <a href="/hoadon/xuat/{{ active_hoadon.mahd }}" class="badge bg-secondary text-decoration-none" target="_blank">Xem bill</a>
+                    </div>
+                    {% for item in existing_items %}
+                    <div class="d-flex justify-content-between align-items-center py-1 border-bottom border-secondary border-opacity-25" style="font-size: 12px;">
+                        <div>
+                            <span class="text-light">{{ item.TenMon }}</span>
+                            <span class="badge-existing ms-1">x{{ item.SoLuong }}</span>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Số điện thoại</label>
-                            <input type="tel" name="phone" class="form-control" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Địa chỉ giao hàng</label>
-                            <textarea name="address" class="form-control" rows="2" required></textarea>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Số lượng</label>
-                            <input type="number" name="quantity" class="form-control" value="1" min="1" required>
-                        </div>
-                        <button type="submit" class="btn btn-success w-100">Đặt hàng</button>
-                        <a href="/" class="btn btn-secondary w-100 mt-2">Quay lại</a>
-                    </form>
+                        <span class="text-muted">{{ "{:,.0f}".format(item.ThanhTien) }} ₫</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- Danh sách món mới thêm vào giỏ -->
+                <div id="newCartItems" class="d-flex flex-column gap-2">
+                    <div class="text-center py-4 text-muted" id="emptyCartNotice">
+                        <i class="bi bi-cart-x fs-2 d-block mb-1 opacity-50"></i>
+                        <span class="small">Chưa có món mới nào được chọn.<br>Bấm nút "Thêm" trên thẻ món để gọi.</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="cart-footer">
+                <div class="total-row">
+                    <span class="text-muted">Tổng cộng (món mới):</span>
+                    <span class="total-amount" id="cartTotalDisplay">0 ₫</span>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button type="button" id="btnSubmitOrder" class="btn btn-danger py-2 fw-bold" onclick="submitOrder()">
+                        <i class="bi bi-send-fill me-1"></i> Xác Nhận Gọi Món
+                    </button>
+                    {% if active_hoadon %}
+                    <a href="/hoadon/xuat/{{ active_hoadon.mahd }}" class="btn btn-outline-warning btn-sm" target="_blank">
+                        <i class="bi bi-printer me-1"></i> In Tạm Tính Bàn Này
+                    </a>
+                    {% endif %}
                 </div>
             </div>
         </div>
-    </section>
 
-    <footer class="py-5 bg-dark">
-        <div class="container"><p class="m-0 text-center text-white">Copyright &copy; Your Website 2023</p></div>
-    </footer>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="/static/js/scripts.js"></script>
-</body>
-</html>
+    </div>
+
+</div>
+
+<!-- Modal Thông Báo / Toast -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 9999;">
+    <div id="orderToast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body" id="toastMessage">
+                Gọi món thành công!
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // State của giỏ hàng: map { mamon: { mamon, tenmon, gia, soluong } }
+    let cart = {};
+
+    function addToCart(mamon, tenmon, gia) {
+        if (cart[mamon]) {
+            cart[mamon].soluong += 1;
+        } else {
+            cart[mamon] = {
+                mamon: mamon,
+                tenmon: tenmon,
+                gia: gia,
+                soluong: 1
+            };
+        }
+        renderCart();
+    }
+
+    function updateQty(mamon, delta) {
+        if (!cart[mamon]) return;
+        cart[mamon].soluong += delta;
+        if (cart[mamon].soluong <= 0) {
+            delete cart[mamon];
+        }
+        renderCart();
+    }
+
+    function removeItem(mamon) {
+        delete cart[mamon];
+        renderCart();
+    }
+
+    function clearCart() {
+        cart = {};
+        renderCart();
+    }
+
+    function formatMoney(amount) {
+        return new Intl.NumberFormat('vi-VN').format(amount) + ' ₫';
+    }
+
+    function renderCart() {
+        const container = document.getElementById('newCartItems');
+        const emptyNotice = document.getElementById('emptyCartNotice');
+        const totalDisplay = document.getElementById('cartTotalDisplay');
+
+        const keys = Object.keys(cart);
+        if (keys.length === 0) {
+            container.innerHTML = `
+                <div class="text-center py-4 text-muted" id="emptyCartNotice">
+                    <i class="bi bi-cart-x fs-2 d-block mb-1 opacity-50"></i>
+                    <span class="small">Chưa có món mới nào được chọn.<br>Bấm nút "Thêm" trên thẻ món để gọi.</span>
+                </div>
+            `;
+            totalDisplay.textContent = '0 ₫';
+            return;
+        }
+
+        let total = 0;
+        let html = '';
+
+        keys.forEach(id => {
+            const item = cart[id];
+            const subtotal = item.gia * item.soluong;
+            total += subtotal;
+
+            html += `
+                <div class="cart-item">
+                    <div>
+                        <div class="cart-item-name" title="${item.tenmon}">${item.tenmon}</div>
+                        <div class="cart-item-price">${formatMoney(item.gia)}</div>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="qty-ctrl">
+                            <button type="button" class="qty-btn" onclick="updateQty(${item.mamon}, -1)">-</button>
+                            <span class="qty-num">${item.soluong}</span>
+                            <button type="button" class="qty-btn" onclick="updateQty(${item.mamon}, 1)">+</button>
+                        </div>
+                        <button type="button" class="btn btn-link text-danger p-0 ms-1" onclick="removeItem(${item.mamon})" title="Xóa">
+                            <i class="bi bi-x-circle"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
+        totalDisplay.textContent = formatMoney(total);
+    }
+
+    // Lọc theo danh mục
+    function filterCategory(dm, el) {
+        document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
+        el.classList.add('active');
+
+        const items = document.querySelectorAll('.dish-item');
+        let visibleCount = 0;
+
+        items.forEach(it => {
+            const itemDm = it.getAttribute('data-dm');
+            if (dm === 'all' || itemDm === dm) {
+                it.classList.remove('d-none');
+                visibleCount++;
+            } else {
+                it.classList.add('d-none');
+            }
+        });
+
+        document.getElementById('noResults').classList.toggle('d-none', visibleCount > 0);
+    }
+
+    // Tìm kiếm bằng tên món
+    function filterDishes() {
+        const query = document.getElementById('searchInput').value.trim().toLowerCase();
+        const items = document.querySelectorAll('.dish-item');
+        let visibleCount = 0;
+
+        items.forEach(it => {
+            const name = it.getAttribute('data-name') || '';
+            if (name.includes(query)) {
+                it.classList.remove('d-none');
+                visibleCount++;
+            } else {
+                it.classList.add('d-none');
+            }
+        });
+
+        document.getElementById('noResults').classList.toggle('d-none', visibleCount > 0);
+    }
+
+    // Đổi bàn nhanh (reload theo query param maban)
+    function changeTable(maban) {
+        if (!maban) return;
+        window.location.href = `/order?maban=${maban}`;
+    }
+
+    // Gửi đơn gọi món
+    async function submitOrder() {
+        const maban = document.getElementById('selectBan').value;
+        const manv = document.getElementById('selectNhanVien').value;
+
+        if (!maban) {
+            alert('Vui lòng chọn bàn ăn trước khi xác nhận gọi món!');
+            document.getElementById('selectBan').focus();
+            return;
+        }
+
+        const itemsList = Object.values(cart);
+        if (itemsList.length === 0) {
+            alert('Vui lòng thêm ít nhất một món ăn vào đơn!');
+            return;
+        }
+
+        const btn = document.getElementById('btnSubmitOrder');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Đang gửi bếp...';
+
+        try {
+            const payload = {
+                maban: parseInt(maban),
+                manv: manv ? parseInt(manv) : null,
+                items: itemsList.map(it => ({
+                    mamon: it.mamon,
+                    soluong: it.soluong,
+                    dongia: it.gia
+                }))
+            };
+
+            const resp = await fetch('/order/submit', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const res = await resp.json();
+
+            if (res.success) {
+                showToast(res.message || 'Gọi món thành công!');
+                // Reset cart & chuyển về lại bàn đó để thấy các món đã thêm
+                clearCart();
+                setTimeout(() => {
+                    window.location.href = `/order?maban=${maban}`;
+                }, 1200);
+            } else {
+                alert('Lỗi: ' + res.message);
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-send-fill me-1"></i> Xác Nhận Gọi Món';
+            }
+        } catch (e) {
+            alert('Lỗi kết nối khi gửi order: ' + e);
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-send-fill me-1"></i> Xác Nhận Gọi Món';
+        }
+    }
+
+    function showToast(msg) {
+        const toastEl = document.getElementById('orderToast');
+        document.getElementById('toastMessage').textContent = msg;
+        const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
+        toast.show();
+    }
+</script>
+{% endblock %}

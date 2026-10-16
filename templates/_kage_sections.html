@@ -4,6 +4,13 @@
      phải .sec) để kịch bản gốc không truy vấn nhầm.
      ═══════════════════════════════════════════════════════════ -->
 
+{% set cur_user = user if user else (request.session.get('user') if ('session' in request.scope) else None) %}
+{% if cur_user and (cur_user.username == 'admin' or 'quản trị' in (cur_user.hoten|lower) or 'quản lý' in (cur_user.hoten|lower)) %}
+    {% set _ = cur_user.update({'chucvu': 'Quản lý', 'role_code': 'admin'}) %}
+{% endif %}
+{% set is_admin = cur_user and cur_user.role_code == 'admin' %}
+{% set can_manage_dish = cur_user and (cur_user.role_code in ['admin', 'bep'] or 'quản lý' in cur_user.chucvu|lower or 'bếp' in cur_user.chucvu|lower) %}
+
 <!-- ── 04 · Thực Đơn ─────────────────────────────────────── -->
 <section class="ov-sec" id="monan">
     <div class="ov-head">
@@ -15,9 +22,11 @@
         <h2 class="ov-h2">Món Ăn.</h2>
         <p class="ov-h2b">Món nào đang phục vụ, giá, ảnh món, thuộc danh mục nào.</p>
     </div>
+    {% if can_manage_dish %}
     <div class="ov-topbar">
         <a class="ov-bbtn" href="/monan/add">Thêm Món</a>
     </div>
+    {% endif %}
 
     <div class="ov-dishes">
         {% for m in monan_items %}
@@ -38,8 +47,13 @@
                 <span class="ov-dish__st ov-dish__st--{% if m.TrangThai=='Con ban' or m.TrangThai=='Còn bán' %}on{% else %}off{% endif %}">{% if m.TrangThai=='Con ban' or m.TrangThai=='Còn bán' %}Còn bán{% elif m.TrangThai=='Het mon' or m.TrangThai=='Hết món' %}Hết món{% elif m.TrangThai=='Ngung ban' or m.TrangThai=='Ngừng bán' %}Ngừng bán{% else %}Tạm dừng{% endif %}</span>
             </div>
             <div class="ov-dish__act">
+                <a href="/order" style="color: #51cf66; border-color: rgba(81,207,102,0.4);">Gọi món</a>
+                {% if can_manage_dish %}
                 <a href="/monan/edit/{{ m.MaMon }}">Sửa</a>
+                {% endif %}
+                {% if is_admin %}
                 <a class="ov-dish__act--del" href="/monan/delete/{{ m.MaMon }}" onclick="return confirm('Xóa món {{ m.TenMon }}?')">Xóa</a>
+                {% endif %}
             </div>
         </article>
         {% endfor %}
@@ -102,7 +116,9 @@
                 {% endif %}
                 <a class="ov-les__btn" href="/hoadon/xuat/{{ hd.MaHD }}" target="_blank">In</a>
                 <a class="ov-les__btn" href="/hoadon/excel/{{ hd.MaHD }}">Excel</a>
+                {% if is_admin %}
                 <a class="ov-les__btn ov-les__btn--del" href="/hoadon/delete/{{ hd.MaHD }}" onclick="return confirm('Xóa hóa đơn?')">Xóa</a>
+                {% endif %}
             </span>
             <i class="bar"></i>
         </div>
@@ -110,7 +126,8 @@
     </div>
 </section>
 
-<!-- ── 06 · Nhân Viên ────────────────────────────────────── -->
+{% if is_admin %}
+<!-- ── 06 · Nhân Viên (Chỉ Quản lý) ──────────────────────── -->
 <section class="ov-sec" id="nhanvien">
     <div class="ov-head">
         <span class="ov-head__k"><b>06</b> — Nhân Viên</span>
@@ -119,7 +136,7 @@
     </div>
     <div class="cur-head" data-rv="up">
         <h2 class="ov-h2">Nhân Viên.</h2>
-        <p class="ov-h2b">Đội ngũ phục vụ, chức vụ, tài khoản đăng nhập và trạng thái làm việc.</p>
+        <p class="ov-h2b">Đội ngũ phục vụ, chức vụ và trạng thái làm việc.</p>
     </div>
     <div class="ov-topbar">
         <a class="ov-bbtn" href="/nhanvien/add">Thêm Nhân Viên</a>
@@ -141,6 +158,7 @@
         {% endfor %}
     </div>
 </section>
+{% endif %}
 
 <script>
 /* Thêm dòng món cho hóa đơn */

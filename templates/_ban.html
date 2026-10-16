@@ -1,44 +1,127 @@
-<div class="page-header"><h2><i class="bi bi-grid-3x3-gap"></i> Quản Lý Bàn</h2></div>
+{% set cur_user = request.session.get('user') if 'session' in request.scope else None %}
+{% if cur_user and (cur_user.username == 'admin' or 'quản trị' in (cur_user.hoten|lower) or 'quản lý' in (cur_user.hoten|lower)) %}
+    {% set _ = cur_user.update({'chucvu': 'Quản lý', 'role_code': 'admin'}) %}
+{% endif %}
+{% set is_admin = cur_user and cur_user.role_code == 'admin' %}
+{% set can_edit_table = cur_user and cur_user.role_code in ['admin', 'thungan'] %}
 
-{% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
+<style>
+    .ban-card {
+        background: #0d131a;
+        border: 1px solid rgba(223, 231, 224, 0.12);
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+        transition: transform 0.2s ease, border-color 0.2s ease;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        height: 100%;
+    }
+    .ban-card:hover {
+        transform: translateY(-3px);
+    }
+    .ban-card.status-free {
+        border-top: 4px solid #28a745;
+    }
+    .ban-card.status-booked {
+        border-top: 4px solid #ffc107;
+    }
+    .ban-card.status-busy {
+        border-top: 4px solid #e0231c;
+    }
 
-<div class="card mb-4">
-    <div class="card-header"><h5>Thêm Bàn Mới</h5></div>
-    <div class="card-body">
-        <form method="POST" action="/ban/add" class="row g-3">
-            <div class="col-md-3">
-                <label class="form-label">Tên Bàn</label>
-                <input type="text" class="form-control" name="TenBan" required placeholder="VD: A-01">
-            </div>
-            <div class="col-md-3">
-                <label class="form-label">Khu Vực</label>
-                <select class="form-select" name="KhuVuc"><option>A</option><option>B</option><option>C</option><option>D</option><option>E</option></select>
-            </div>
-            <div class="col-md-2">
-                <label class="form-label">Sức Chứa</label>
-                <input type="number" class="form-control" name="SucChua" value="4" min="1">
-            </div>
-            <div class="col-md-4 d-flex align-items-end">
-                <button type="submit" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Thêm Bàn</button>
-            </div>
-        </form>
+    .add-ban-box {
+        background: #0d131a;
+        border: 1px solid rgba(223, 231, 224, 0.12);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 24px;
+    }
+    .add-ban-box .form-control, .add-ban-box .form-select {
+        background: #141b24;
+        border: 1px solid rgba(223, 231, 224, 0.2);
+        color: #ffffff;
+    }
+</style>
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h2 class="text-white fw-bold mb-1 d-flex align-items-center gap-2">
+            <i class="bi bi-grid-3x3-gap text-danger"></i> Quản Lý Bàn Ăn
+        </h2>
+        <p class="text-muted mb-0 small">Thêm bàn mới, đổi khu vực, sức chứa và cập nhật trạng thái bàn</p>
     </div>
 </div>
 
+{% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
+
+{% if is_admin %}
+<!-- Form Thêm Bàn Mới (Chỉ hiển thị cho quản trị viên) -->
+<div class="add-ban-box shadow-sm">
+    <h5 class="text-white fw-bold mb-3 d-flex align-items-center gap-2">
+        <i class="bi bi-plus-circle text-danger"></i> Thêm Bàn Mới
+    </h5>
+    <form method="POST" action="/ban/add" class="row g-3">
+        <div class="col-md-3">
+            <label class="form-label text-light small fw-medium">Tên Bàn</label>
+            <input type="text" class="form-control" name="TenBan" required placeholder="VD: Bàn A-05, VIP 3...">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label text-light small fw-medium">Khu Vực</label>
+            <select class="form-select" name="KhuVuc">
+                <option value="Tầng 1 (Khu A)">Tầng 1 (Khu A)</option>
+                <option value="Sân Vườn Thoáng Mát">Sân Vườn Thoáng Mát</option>
+                <option value="Tầng Lửng VIP">Tầng Lửng VIP</option>
+                <option value="A">Khu A</option>
+                <option value="B">Khu B</option>
+                <option value="C">Khu C</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label text-light small fw-medium">Sức Chứa</label>
+            <input type="number" class="form-control" name="SucChua" value="4" min="1">
+        </div>
+        <div class="col-md-4 d-flex align-items-end">
+            <button type="submit" class="btn btn-danger fw-bold w-100">
+                <i class="bi bi-plus-lg me-1"></i> Thêm Bàn Ngay
+            </button>
+        </div>
+    </form>
+</div>
+{% endif %}
+
+<!-- Lưới Thẻ Bàn Ăn -->
 <div class="row g-3">
     {% for item in items %}
-    <div class="col-md-3">
-        <div class="card {% if item.TrangThai == 'Trong' %}border-success{% elif item.TrangThai == 'Da dat' or item.TrangThai == 'Đã đặt' %}border-warning{% else %}border-danger{% endif %}">
-            <div class="card-body text-center">
-                <h4>{{ item.TenBan }}</h4>
-                <p class="text-muted mb-1">{{ item.KhuVuc }} - {{ item.SucChua }} chỗ</p>
-                <span class="badge {% if item.TrangThai == 'Trong' %}bg-success{% elif item.TrangThai == 'Da dat' or item.TrangThai == 'Đã đặt' %}bg-warning text-dark{% else %}bg-danger{% endif %} mb-2">
-                    {% if item.TrangThai == 'Trong' %}Trống{% elif item.TrangThai == 'Da dat' or item.TrangThai == 'Đã đặt' %}Đã đặt{% else %}{{ item.TrangThai }}{% endif %}
+    {% set is_free = (item.TrangThai == 'Trong' or item.TrangThai == 'Trống') %}
+    {% set is_booked = (item.TrangThai == 'Da dat' or item.TrangThai == 'Đã đặt' or item.TrangThai == 'DaDat') %}
+    <div class="col-sm-6 col-md-4 col-xl-3">
+        <div class="ban-card {% if is_free %}status-free{% elif is_booked %}status-booked{% else %}status-busy{% endif %} shadow-sm">
+            <div>
+                <h4 class="text-white fw-bold mb-1">{{ item.TenBan }}</h4>
+                <p class="text-muted small mb-2">{{ item.KhuVuc }} · {{ item.SucChua }} chỗ ngồi</p>
+                <span class="badge {% if is_free %}bg-success{% elif is_booked %}bg-warning text-dark{% else %}bg-danger{% endif %} mb-3 px-3 py-1">
+                    {% if is_free %}Trống (Sẵn sàng){% elif is_booked %}Đã đặt trước{% else %}Đang có khách{% endif %}
                 </span>
-                <div class="btn-group btn-group-sm">
-                    <a href="/ban/edit/{{ item.MaBan }}" class="btn btn-outline-primary"><i class="bi bi-pencil"></i> Sửa</a>
-                    <a href="/ban/delete/{{ item.MaBan }}" class="btn btn-outline-danger" onclick="return confirm('Xóa?')"><i class="bi bi-trash"></i> Xóa</a>
+            </div>
+
+            <div class="d-flex flex-column gap-2 mt-2">
+                <a href="/order?maban={{ item.MaBan }}" class="btn btn-sm btn-outline-success fw-bold">
+                    <i class="bi bi-cart-plus me-1"></i> Gọi Món Tại Bàn
+                </a>
+                {% if can_edit_table or is_admin %}
+                <div class="btn-group btn-group-sm w-100">
+                    <a href="/ban/edit/{{ item.MaBan }}" class="btn btn-warning" title="Đổi trạng thái / sửa bàn">
+                        <i class="bi bi-pencil-square me-1"></i> Sửa
+                    </a>
+                    {% if is_admin %}
+                    <a href="/ban/delete/{{ item.MaBan }}" class="btn btn-danger" onclick="return confirm('Bạn có chắc chắn muốn xóa bàn {{ item.TenBan }}?')" title="Xóa bàn (Chỉ Quản lý)">
+                        <i class="bi bi-trash"></i> Xóa
+                    </a>
+                    {% endif %}
                 </div>
+                {% endif %}
             </div>
         </div>
     </div>

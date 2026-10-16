@@ -118,13 +118,8 @@ def edit_nhanvien(
                     {"hoten": HoTen, "gt": gt, "sdt": SDT, "email": Email, "dc": DiaChi, "id": id}
                 )
             conn.commit()
-<<<<<<< Updated upstream
     except Exception as e:
         print("Lỗi edit_nhanvien:", e)
-=======
-    except Exception:
-        logger.exception('LOI tai dong 71')
->>>>>>> Stashed changes
     return RedirectResponse(url="/nhanvien", status_code=303)
 
 
@@ -135,13 +130,8 @@ def delete_nhanvien(id: int):
             conn.execute(text("DELETE FROM taikhoan WHERE manv = :id"), {"id": id})
             conn.execute(text("DELETE FROM nhanvien WHERE manv = :id"), {"id": id})
             conn.commit()
-<<<<<<< Updated upstream
     except Exception as e:
         print("Lỗi delete_nhanvien:", e)
-=======
-    except Exception:
-        logger.exception('LOI tai dong 82')
->>>>>>> Stashed changes
     return RedirectResponse(url="/nhanvien", status_code=303)
 
 

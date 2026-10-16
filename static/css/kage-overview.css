@@ -443,6 +443,33 @@
 #nav.menu-open .nav-burger i:nth-child(1) { top: 8px; width: 26px; transform: rotate(45deg); }
 #nav.menu-open .nav-burger i:nth-child(2) { top: 8px; width: 26px; transform: rotate(-45deg); }
 
+/* Menu Dropdown tại nút 2 vạch */
+.kage-dropdown-menu {
+  background: #0d1218 !important;
+  border: 1px solid rgba(223, 231, 224, 0.16) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.85) !important;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  padding: 8px 6px !important;
+}
+.kage-dropdown-menu .dropdown-item {
+  color: #dfe7e0 !important;
+  font-size: 13px !important;
+  border-radius: 8px;
+  padding: 8px 14px !important;
+  transition: all 0.25s ease;
+}
+.kage-dropdown-menu .dropdown-item:hover {
+  background: rgba(224, 35, 28, 0.18) !important;
+  color: #ffffff !important;
+  transform: translateX(4px);
+}
+.kage-dropdown-menu .dropdown-item.text-danger:hover {
+  background: rgba(224, 35, 28, 0.28) !important;
+  color: #ff6b6b !important;
+}
+
 /* ═══════════════════════════════════════════════════════════
    CÁC MỤC QUẢN LÝ — chương 04 Thực Đơn · 05 Hóa Đơn · 06 Nhân Viên
    Dùng .ov-sec (không phải .sec) để kịch bản Kage không lẫn.

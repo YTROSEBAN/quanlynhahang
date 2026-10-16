@@ -1,33 +1,123 @@
-<div class="page-header d-flex justify-content-between align-items-center">
-    <h2><i class="bi bi-people"></i> Nhân Viên</h2>
-    <a href="/nhanvien/add" class="btn btn-success"><i class="bi bi-plus-circle"></i> Thêm Nhân Viên</a>
+{% set cur_user = request.session.get('user') if 'session' in request.scope else None %}
+{% if cur_user and (cur_user.username == 'admin' or 'quản trị' in (cur_user.hoten|lower) or 'quản lý' in (cur_user.hoten|lower)) %}
+    {% set _ = cur_user.update({'chucvu': 'Quản lý', 'role_code': 'admin'}) %}
+{% endif %}
+{% set is_admin = cur_user and cur_user.role_code == 'admin' %}
+
+<style>
+    .nv-table-wrap {
+        background: #0d131a;
+        border: 1px solid rgba(223, 231, 224, 0.12);
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+    .nv-table {
+        margin-bottom: 0;
+        color: #dfe7e0;
+    }
+    .nv-table thead {
+        background: #141b24;
+        border-bottom: 2px solid rgba(224, 35, 28, 0.4);
+    }
+    .nv-table thead th {
+        color: #ffffff;
+        font-size: 13px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        padding: 14px 16px;
+        border-bottom: none;
+        white-space: nowrap;
+    }
+    .nv-table tbody tr {
+        border-bottom: 1px solid rgba(223, 231, 224, 0.06);
+        transition: background 0.15s ease;
+    }
+    .nv-table tbody tr:hover {
+        background: rgba(255, 255, 255, 0.035);
+    }
+    .nv-table tbody td {
+        padding: 14px 16px;
+        vertical-align: middle;
+        font-size: 14px;
+        color: #f0f6fc;
+    }
+</style>
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h2 class="text-white fw-bold mb-1 d-flex align-items-center gap-2">
+            <i class="bi bi-people-fill text-danger"></i> Quản Lý Nhân Viên &amp; Tài Khoản
+        </h2>
+        <p class="text-muted mb-0 small">Thêm mới nhân sự, phân quyền chức vụ và quản lý tài khoản đăng nhập</p>
+    </div>
+    {% if is_admin %}
+    <a href="/nhanvien/add" class="btn btn-danger fw-bold d-inline-flex align-items-center gap-2 px-3 py-2">
+        <i class="bi bi-person-plus-fill"></i> Thêm Nhân Viên Mới
+    </a>
+    {% endif %}
 </div>
 
 {% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
 
-<div class="table-responsive">
-    <table class="table table-bordered table-hover bg-white shadow-sm">
-        <thead class="table-dark">
-            <tr><th>Mã NV</th><th>Họ Tên</th><th>Giới Tính</th><th>SĐT</th><th>Email</th><th>Chức Vụ</th><th>Trạng Thái</th><th>Thao Tác</th></tr>
-        </thead>
-        <tbody>
-            {% for nv in items %}
-            <tr>
-                <td>{{ nv.MaNV }}</td>
-                <td>{{ nv.HoTen }}</td>
-                <td>{{ nv.GioiTinh or '' }}</td>
-                <td>{{ nv.SDT or '' }}</td>
-                <td>{{ nv.Email or '' }}</td>
-                <td>{{ nv.ChucVu }}</td>
-                <td><span class="badge {% if nv.TrangThai=='Dang lam' %}bg-success{% else %}bg-secondary{% endif %}">
-                    {% if nv.TrangThai=='Dang lam' %}Đang làm{% else %}Nghỉ việc{% endif %}
-                </span></td>
-                <td>
-                    <a href="/nhanvien/edit/{{ nv.MaNV }}" class="btn btn-warning btn-sm"><i class="bi bi-pencil"></i> Sửa</a>
-                    <a href="/nhanvien/delete/{{ nv.MaNV }}" class="btn btn-danger btn-sm" onclick="return confirm('Xóa?')"><i class="bi bi-trash"></i> Xóa</a>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+<div class="nv-table-wrap">
+    <div class="table-responsive">
+        <table class="table nv-table align-middle">
+            <thead>
+                <tr>
+                    <th style="width: 80px;">Mã NV</th>
+                    <th>Họ &amp; Tên</th>
+                    <th>Chức Vụ</th>
+                    <th>Tài Khoản Đăng Nhập</th>
+                    <th>Số Điện Thoại</th>
+                    <th>Email</th>
+                    <th>Trạng Thái</th>
+                    {% if is_admin %}
+                    <th style="width: 140px;" class="text-end">Thao Tác</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for nv in items %}
+                <tr>
+                    <td><b class="text-danger">#{{ nv.MaNV }}</b></td>
+                    <td>
+                        <div class="fw-bold text-white">{{ nv.HoTen }}</div>
+                        <small class="text-muted">{{ nv.GioiTinh or '' }}</small>
+                    </td>
+                    <td>
+                        <span class="badge {% if 'quản lý' in nv.ChucVu|lower or 'admin' in nv.ChucVu|lower %}bg-danger{% elif 'thu ngân' in nv.ChucVu|lower %}bg-warning text-dark{% elif 'bếp' in nv.ChucVu|lower %}bg-success{% else %}bg-primary{% endif %} px-2 py-1">
+                            {{ nv.ChucVu }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if nv.Username %}
+                        <code class="text-warning bg-dark px-2 py-1 rounded">{{ nv.Username }}</code>
+                        {% else %}
+                        <span class="text-muted fst-italic">Chưa cấp</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ nv.SDT or '—' }}</td>
+                    <td>{{ nv.Email or '—' }}</td>
+                    <td>
+                        <span class="badge bg-success">Đang làm việc</span>
+                    </td>
+                    {% if is_admin %}
+                    <td class="text-end">
+                        <div class="btn-group btn-group-sm">
+                            <a href="/nhanvien/edit/{{ nv.MaNV }}" class="btn btn-warning" title="Chỉnh sửa thông tin">
+                                <i class="bi bi-pencil-square"></i> Sửa
+                            </a>
+                            <a href="/nhanvien/delete/{{ nv.MaNV }}" class="btn btn-danger" onclick="return confirm('Bạn có chắc muốn xóa nhân viên {{ nv.HoTen }}?')" title="Xóa nhân viên">
+                                <i class="bi bi-trash"></i> Xóa
+                            </a>
+                        </div>
+                    </td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>

@@ -23,12 +23,19 @@
         <span class="k"><b>03</b> — Quản Lý Bàn</span><span class="rule"></span><span class="k jp">座敷</span>
     </div>
 
+    {% set cur_user = user if user else (request.session.get('user') if ('session' in request.scope) else None) %}
+    {% if cur_user and (cur_user.username == 'admin' or 'quản trị' in (cur_user.hoten|lower) or 'quản lý' in (cur_user.hoten|lower)) %}
+        {% set _ = cur_user.update({'chucvu': 'Quản lý', 'role_code': 'admin'}) %}
+    {% endif %}
+    {% set is_admin = cur_user and cur_user.role_code == 'admin' %}
+
     <div class="cur-head" data-rv="up">
-        <h2 class="ov-h2">Thêm Bàn Mới.</h2>
-        <p class="ov-h2b">Sức chứa mỗi bàn, khu vực xếp chỗ, trạng thái bàn đang trống hay đã đặt. Mọi thao tác nằm ngay tại đây.</p>
+        <h2 class="ov-h2">{% if is_admin %}Thêm Bàn Mới.{% else %}Danh Sách Bàn Ăn.{% endif %}</h2>
+        <p class="ov-h2b">Sức chứa mỗi bàn, khu vực xếp chỗ, trạng thái bàn đang trống hay đã đặt.</p>
     </div>
 
-    <!-- Ô nhập: Tên Bàn · Khu Vực · Sức Chứa -->
+    {% if is_admin %}
+    <!-- Ô nhập: Tên Bàn · Khu Vực · Sức Chứa (Chỉ Quản lý) -->
     <form class="ov-bform" id="ovBanForm" method="POST" action="/ban/add" data-rv="up">
         <label class="ov-bfield">
             <span>Tên Bàn</span>
@@ -47,6 +54,7 @@
         </label>
         <button class="ov-bbtn" type="submit">Thêm Bàn</button>
     </form>
+    {% endif %}
 
     <!-- Danh sách bàn, dùng đúng lưới .les của bản gốc -->
     <div class="cur ov-les" id="ovLes">
@@ -57,8 +65,11 @@
             <p>{{ item.SucChua }} chỗ · sức chứa</p>
             <span class="ov-les__t">
                 <i class="ov-les__st ov-les__st--{% if item.TrangThai=='Trong' %}free{% elif item.TrangThai=='Da dat' or item.TrangThai=='Đã đặt' %}booked{% else %}busy{% endif %}">{% if item.TrangThai=='Trong' %}Trống{% elif item.TrangThai=='Da dat' or item.TrangThai=='Đã đặt' %}Đã đặt{% else %}{{ item.TrangThai }}{% endif %}</i>
+                <a class="ov-les__btn" href="/order?maban={{ item.MaBan }}" target="_parent" style="color: #51cf66; border-color: rgba(81,207,102,0.4);">Gọi Món</a>
+                {% if is_admin %}
                 <a class="ov-les__btn" href="/ban/edit/{{ item.MaBan }}" target="_parent">Sửa</a>
                 <a class="ov-les__btn ov-les__btn--del" href="/ban/delete/{{ item.MaBan }}" target="_parent" onclick="return confirm('Xóa bàn {{ item.TenBan }}?')">Xóa</a>
+                {% endif %}
             </span>
             <i class="bar"></i>
         </div>

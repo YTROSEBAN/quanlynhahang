@@ -129,8 +129,7 @@ a:hover { color: var(--bone); }
 
 .nav-links {
   display: flex; align-items: center;
-  gap: clamp(18px, 2.6vw, 46px);
-  margin-left: auto;
+  gap: clamp(14px, 2.2vw, 36px);
 }
 
 /* Kanji trượt lên thay thế tiếng Anh khi rê.

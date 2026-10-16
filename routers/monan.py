@@ -65,13 +65,8 @@ async def add_monan(
                 {"ten": TenMon, "gia": DonGia, "hinh": image_path, "mota": MoTa, "madm": MaDM}
             )
             conn.commit()
-<<<<<<< Updated upstream
     except Exception as e:
         print("Lỗi add_monan:", e)
-=======
-    except Exception:
-        logger.exception('LOI tai dong 58')
->>>>>>> Stashed changes
     return RedirectResponse(url="/monan", status_code=303)
 
 
@@ -124,13 +119,8 @@ async def edit_monan(
                     {"ten": TenMon, "gia": DonGia, "mota": MoTa, "madm": MaDM, "tt": tt_val, "id": id}
                 )
             conn.commit()
-<<<<<<< Updated upstream
     except Exception as e:
         print("Lỗi edit_monan:", e)
-=======
-    except Exception:
-        logger.exception('LOI tai dong 104')
->>>>>>> Stashed changes
     return RedirectResponse(url="/monan", status_code=303)
 
 
@@ -140,13 +130,8 @@ def delete_monan(id: int):
         with engine.connect() as conn:
             conn.execute(text("DELETE FROM monan WHERE mamon = :id"), {"id": id})
             conn.commit()
-<<<<<<< Updated upstream
     except Exception as e:
         print("Lỗi delete_monan:", e)
-=======
-    except Exception:
-        logger.exception('LOI tai dong 115')
->>>>>>> Stashed changes
     return RedirectResponse(url="/monan", status_code=303)
 
 

@@ -3,9 +3,16 @@ import os
 from fastapi import FastAPI
 from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
-from routers import trangchu, ban, monan, hoadon, nhanvien
+from routers import trangchu, ban, monan, hoadon, nhanvien, auth, order, bep
 
 app = FastAPI()
+
+try:
+    from starlette.middleware.sessions import SessionMiddleware
+    app.add_middleware(SessionMiddleware, secret_key="kage-restaurant-secret-key-2026")
+except Exception as e:
+    print("Warning: Chưa thể bật SessionMiddleware (cần pip install itsdangerous):", e)
+
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
@@ -26,6 +33,9 @@ async def no_cache_static(request, call_next):
         response.headers["Pragma"] = "no-cache"
     return response
 
+app.include_router(auth.router)
+app.include_router(order.router)
+app.include_router(bep.router)
 app.include_router(trangchu.router)
 app.include_router(ban.router)
 app.include_router(monan.router)
@@ -68,4 +78,4 @@ else:  # pragma: no cover - only when the Vite build has not been run
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    uvicorn.run("main:app", host="127.0.0.1", port=8001, reload=True)

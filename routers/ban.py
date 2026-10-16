@@ -53,13 +53,8 @@ def add_ban(TenBan: str = Form(...), KhuVuc: str = Form("A"), SucChua: int = For
                 {"ten": TenBan, "khu": KhuVuc, "suc": SucChua}
             )
             conn.commit()
-<<<<<<< Updated upstream
-    except Exception as e:
-        print("Lỗi add_ban:", e)
-=======
     except Exception:
         logger.exception('LOI tai dong 31')
->>>>>>> Stashed changes
     return RedirectResponse(url="/ban", status_code=303)
 
 
@@ -95,13 +90,8 @@ def edit_ban(id: int, TenBan: str = Form(...), KhuVuc: str = Form(...), SucChua:
                 {"ten": TenBan, "khu": KhuVuc, "suc": SucChua, "tt": tt_db, "id": id}
             )
             conn.commit()
-<<<<<<< Updated upstream
-    except Exception as e:
-        print("Lỗi edit_ban:", e)
-=======
     except Exception:
         logger.exception('LOI tai dong 58')
->>>>>>> Stashed changes
     return RedirectResponse(url="/ban", status_code=303)
 
 
@@ -111,13 +101,8 @@ def delete_ban(id: int):
         with engine.connect() as conn:
             conn.execute(text("DELETE FROM banan WHERE maban = :id"), {"id": id})
             conn.commit()
-<<<<<<< Updated upstream
-    except Exception as e:
-        print("Lỗi delete_ban:", e)
-=======
     except Exception:
         logger.exception('LOI tai dong 69')
->>>>>>> Stashed changes
     return RedirectResponse(url="/ban", status_code=303)
 
 
@@ -147,12 +132,6 @@ def update_trangthai(id: int, TrangThai: str = Form(...)):
         with engine.connect() as conn:
             conn.execute(text("UPDATE banan SET trangthai=:tt WHERE maban=:id"), {"tt": tt_db, "id": id})
             conn.commit()
-<<<<<<< Updated upstream
     except Exception as e:
         print("Lỗi update_trangthai:", e)
     return RedirectResponse(url="/ban", status_code=303)
-=======
-    except Exception:
-        logger.exception('LOI tai dong 91')
-    return RedirectResponse(url="/ban", status_code=303)
->>>>>>> Stashed changes

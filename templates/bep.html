@@ -1,0 +1,481 @@
+{% extends "base.html" %}
+
+{% block title %}Điều Phối Bếp (KDS) - 影 KAGE Quản Lý Nhà Hàng{% endblock %}
+
+{% block extra_css %}
+<style>
+    .kds-header {
+        background: linear-gradient(135deg, rgba(224, 35, 28, 0.12) 0%, rgba(13, 19, 26, 0.95) 100%);
+        border: 1px solid rgba(224, 35, 28, 0.25);
+        border-radius: 14px;
+        padding: 18px 24px;
+        margin-bottom: 24px;
+    }
+    .kds-stat-badge {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(223, 231, 224, 0.1);
+        border-radius: 10px;
+        padding: 10px 18px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .ticket-card {
+        background: #0d131a;
+        border: 1px solid rgba(223, 231, 224, 0.15);
+        border-radius: 12px;
+        overflow: hidden;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    }
+    .ticket-card.has-waiting {
+        border-color: rgba(255, 193, 7, 0.5);
+    }
+    .ticket-card.has-cooking {
+        border-color: rgba(13, 202, 240, 0.5);
+    }
+    .ticket-header {
+        padding: 12px 16px;
+        background: #121a24;
+        border-bottom: 1px solid rgba(223, 231, 224, 0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .ticket-body {
+        padding: 12px 14px;
+        flex-grow: 1;
+        max-height: 480px;
+        overflow-y: auto;
+    }
+    .dish-row {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(223, 231, 224, 0.08);
+        border-radius: 8px;
+        padding: 10px 12px;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        transition: background 0.2s;
+    }
+    .dish-row.chonau {
+        border-left: 4px solid #ffc107;
+        background: rgba(255, 193, 7, 0.04);
+    }
+    .dish-row.dangnau {
+        border-left: 4px solid #0dcaf0;
+        background: rgba(13, 202, 240, 0.05);
+    }
+    .dish-qty {
+        font-size: 16px;
+        font-weight: 800;
+        background: #e0231c;
+        color: #fff;
+        min-width: 34px;
+        height: 34px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    .dish-name {
+        color: #fff;
+        font-weight: 700;
+        font-size: 14px;
+        margin-bottom: 2px;
+    }
+    .dish-note {
+        font-size: 12px;
+        color: #ffc107;
+        font-style: italic;
+    }
+    .dish-time {
+        font-size: 11px;
+        color: #8b9791;
+    }
+    .btn-cook {
+        background: #ffc107;
+        color: #000;
+        font-weight: 700;
+        border: none;
+        padding: 6px 12px;
+        font-size: 12px;
+        border-radius: 6px;
+    }
+    .btn-cook:hover {
+        background: #ffca2c;
+    }
+    .btn-done {
+        background: #198754;
+        color: #fff;
+        font-weight: 700;
+        border: none;
+        padding: 6px 12px;
+        font-size: 12px;
+        border-radius: 6px;
+    }
+    .btn-done:hover {
+        background: #157347;
+    }
+    .ticket-footer {
+        padding: 10px 14px;
+        background: #121a24;
+        border-top: 1px solid rgba(223, 231, 224, 0.1);
+    }
+    /* Hiệu ứng nhấp nháy khi có order mới */
+    @keyframes kdsPulse {
+        0% { box-shadow: 0 0 0 0 rgba(224, 35, 28, 0.7); }
+        70% { box-shadow: 0 0 0 16px rgba(224, 35, 28, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(224, 35, 28, 0); }
+    }
+    .kds-new-pulse {
+        animation: kdsPulse 1.5s infinite;
+    }
+</style>
+{% endblock %}
+
+{% block chapter %}Điều Phối Bếp · 厨房{% endblock %}
+
+{% block content %}
+<div class="kds-header d-flex flex-wrap align-items-center justify-content-between gap-3">
+    <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <span style="display: inline-block; width: 10px; height: 10px; background: #e0231c; border-radius: 50%; box-shadow: 0 0 10px #e0231c;"></span>
+            <h3 class="text-white fw-bold mb-0" style="font-family: 'Noto JP', sans-serif;">MÀN HÌNH ĐIỀU PHỐI BẾP (KDS)</h3>
+        </div>
+        <p class="text-muted small mb-0">Hệ thống nhận order trực tiếp từ phục vụ - Tự động cập nhật tức thời</p>
+    </div>
+
+    <!-- Live controls -->
+    <div class="d-flex align-items-center gap-3">
+        <button id="btnAudioToggle" class="btn btn-sm btn-outline-warning d-flex align-items-center gap-2" onclick="toggleAudio()">
+            <i class="bi bi-volume-up-fill" id="audioIcon"></i>
+            <span id="audioText">Chuông: Bật</span>
+        </button>
+        <button class="btn btn-sm btn-outline-light d-flex align-items-center gap-2" onclick="fetchKitchenOrders(true)">
+            <i class="bi bi-arrow-clockwise"></i> Làm mới
+        </button>
+        <div class="text-end text-muted small ps-3 border-start" style="border-color: rgba(223,231,224,0.15) !important;">
+            <div class="text-white fw-bold" id="liveClock">--:--:--</div>
+            <div style="font-size: 11px;">Thời gian thực</div>
+        </div>
+    </div>
+</div>
+
+<!-- Stats row -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="kds-stat-badge">
+            <div class="rounded-circle p-2 bg-warning bg-opacity-25 text-warning fs-4 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                <i class="bi bi-hourglass-split"></i>
+            </div>
+            <div>
+                <div class="text-muted small">Chờ nấu</div>
+                <div class="fs-4 fw-bold text-warning" id="statChoNau">0</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="kds-stat-badge">
+            <div class="rounded-circle p-2 bg-info bg-opacity-25 text-info fs-4 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                <i class="bi bi-fire"></i>
+            </div>
+            <div>
+                <div class="text-muted small">Đang nấu</div>
+                <div class="fs-4 fw-bold text-info" id="statDangNau">0</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="kds-stat-badge">
+            <div class="rounded-circle p-2 bg-danger bg-opacity-25 text-danger fs-4 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                <i class="bi bi-grid-3x3-gap"></i>
+            </div>
+            <div>
+                <div class="text-muted small">Bàn đang chờ</div>
+                <div class="fs-4 fw-bold text-white" id="statTongBan">0</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="kds-stat-badge">
+            <div class="rounded-circle p-2 bg-success bg-opacity-25 text-success fs-4 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                <i class="bi bi-check2-circle"></i>
+            </div>
+            <div>
+                <div class="text-muted small">Đã xong hôm nay</div>
+                <div class="fs-4 fw-bold text-success" id="statDaXong">0</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast thông báo có đơn mới -->
+<div id="newOrderToast" class="alert alert-danger d-none align-items-center justify-content-between py-2 px-3 mb-4 rounded-3 shadow" style="background: rgba(224, 35, 28, 0.2); border: 1px solid #e0231c;">
+    <div class="d-flex align-items-center gap-2">
+        <i class="bi bi-bell-fill text-danger fs-5"></i>
+        <strong class="text-white" id="toastMessage">🔔 Có món mới vừa được gọi vào bếp!</strong>
+    </div>
+    <button type="button" class="btn-close btn-close-white btn-sm" onclick="dismissToast()"></button>
+</div>
+
+<!-- Grid Ticket Order Bếp -->
+<div id="ticketsContainer" class="row g-4">
+    <!-- Render động từ API -->
+    <div class="col-12 text-center py-5">
+        <div class="spinner-border text-danger"></div>
+        <p class="text-muted mt-2">Đang kết nối nhà bếp...</p>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    var audioEnabled = true;
+    var lastTicketSignature = "";
+    var audioCtx = null;
+
+    // Phát âm thanh chuông bếp Ting-Ting bằng Web Audio API
+    function playKitchenBell() {
+        if (!audioEnabled) return;
+        try {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            var now = audioCtx.currentTime;
+            
+            // Nốt 1: 880Hz (A5)
+            var osc1 = audioCtx.createOscillator();
+            var gain1 = audioCtx.createGain();
+            osc1.type = 'sine';
+            osc1.frequency.setValueAtTime(880, now);
+            gain1.gain.setValueAtTime(0.3, now);
+            gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+            osc1.connect(gain1);
+            gain1.connect(audioCtx.destination);
+            osc1.start(now);
+            osc1.stop(now + 0.5);
+
+            // Nốt 2: 1320Hz (E6)
+            var osc2 = audioCtx.createOscillator();
+            var gain2 = audioCtx.createGain();
+            osc2.type = 'sine';
+            osc2.frequency.setValueAtTime(1320, now + 0.15);
+            gain2.gain.setValueAtTime(0.35, now + 0.15);
+            gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+            osc2.connect(gain2);
+            gain2.connect(audioCtx.destination);
+            osc2.start(now + 0.15);
+            osc2.stop(now + 0.8);
+        } catch (e) {
+            console.log("Audio play error:", e);
+        }
+    }
+
+    function toggleAudio() {
+        audioEnabled = !audioEnabled;
+        var icon = document.getElementById('audioIcon');
+        var text = document.getElementById('audioText');
+        var btn = document.getElementById('btnAudioToggle');
+        if (audioEnabled) {
+            icon.className = 'bi bi-volume-up-fill';
+            text.textContent = 'Chuông: Bật';
+            btn.className = 'btn btn-sm btn-outline-warning d-flex align-items-center gap-2';
+            playKitchenBell();
+        } else {
+            icon.className = 'bi bi-volume-mute-fill';
+            text.textContent = 'Chuông: Tắt';
+            btn.className = 'btn btn-sm btn-outline-secondary d-flex align-items-center gap-2';
+        }
+    }
+
+    function dismissToast() {
+        document.getElementById('newOrderToast').classList.add('d-none');
+    }
+
+    function updateClock() {
+        var now = new Date();
+        var h = String(now.getHours()).padStart(2, '0');
+        var m = String(now.getMinutes()).padStart(2, '0');
+        var s = String(now.getSeconds()).padStart(2, '0');
+        document.getElementById('liveClock').textContent = h + ':' + m + ':' + s;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // Tải danh sách đơn món nhà bếp
+    async function fetchKitchenOrders(isManual) {
+        try {
+            var res = await fetch('/api/bep/orders');
+            var data = await res.json();
+            
+            if (data.error) {
+                console.error("Lỗi API Bếp:", data.error);
+                return;
+            }
+
+            // Cập nhật thống kê
+            document.getElementById('statChoNau').textContent = data.stats.cho_nau || 0;
+            document.getElementById('statDangNau').textContent = data.stats.dang_nau || 0;
+            document.getElementById('statTongBan').textContent = data.stats.tong_ban_cho || 0;
+            document.getElementById('statDaXong').textContent = data.stats.da_xong || 0;
+
+            // Kiểm tra xem có đơn mới không để đổ chuông
+            var currentSignature = JSON.stringify(data.tickets.map(function(t) {
+                return t.mahd + '_' + t.items.map(function(i){ return i.mamon + ':' + i.soluong + ':' + i.trangthai; }).join(',');
+            }));
+
+            if (lastTicketSignature !== "" && currentSignature !== lastTicketSignature && !isManual) {
+                // Kiểm tra xem số món chờ nấu có tăng không
+                playKitchenBell();
+                var toast = document.getElementById('newOrderToast');
+                document.getElementById('toastMessage').textContent = '🔔 Vừa có món mới hoặc thay đổi từ phục vụ bàn!';
+                toast.classList.remove('d-none');
+                setTimeout(dismissToast, 6000);
+            }
+            lastTicketSignature = currentSignature;
+
+            renderTickets(data.tickets);
+
+        } catch (e) {
+            console.error("Lỗi fetchKitchenOrders:", e);
+        }
+    }
+
+    function renderTickets(tickets) {
+        var container = document.getElementById('ticketsContainer');
+        if (!tickets || tickets.length === 0) {
+            container.innerHTML = `
+                <div class="col-12 text-center py-5">
+                    <div class="fs-1 text-success mb-3"><i class="bi bi-check-circle"></i></div>
+                    <h4 class="text-white fw-bold">Hiện tại không có món nào đang chờ chế biến!</h4>
+                    <p class="text-muted">Tất cả các món đã hoàn thành hoặc chưa có bàn nào gọi món mới.</p>
+                </div>
+            `;
+            return;
+        }
+
+        var html = '';
+        tickets.forEach(function(t) {
+            var hasWaiting = t.items.some(function(i){ return i.trangthai === 'ChoNau'; });
+            var hasCooking = t.items.some(function(i){ return i.trangthai === 'DangNau'; });
+            var cardBorderClass = hasWaiting ? 'has-waiting' : (hasCooking ? 'has-cooking' : '');
+
+            html += `
+                <div class="col-md-6 col-xl-4">
+                    <div class="ticket-card ${cardBorderClass}">
+                        <div class="ticket-header">
+                            <div>
+                                <h5 class="text-white fw-bold mb-0">${t.tenban}</h5>
+                                <span class="badge bg-secondary" style="font-size: 10px;">${t.khuvuc || 'Khu vực'}</span>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-danger" style="font-size: 11px;">HĐ #${t.mahd}</span>
+                                <div class="text-muted" style="font-size: 11px;">Vào lúc: ${t.ngaytao}</div>
+                            </div>
+                        </div>
+
+                        <div class="ticket-body">
+            `;
+
+            t.items.forEach(function(it) {
+                var rowClass = it.trangthai === 'ChoNau' ? 'chonau' : 'dangnau';
+                var statusBadge = '';
+                var actionBtn = '';
+
+                if (it.trangthai === 'ChoNau') {
+                    statusBadge = '<span class="badge bg-warning text-dark" style="font-size: 10px;">⏳ Chờ nấu</span>';
+                    actionBtn = `<button class="btn-cook" onclick="updateDishStatus(${t.mahd}, ${it.mamon}, 'DangNau')"><i class="bi bi-fire me-1"></i> Nấu ngay</button>`;
+                } else if (it.trangthai === 'DangNau') {
+                    statusBadge = '<span class="badge bg-info text-dark" style="font-size: 10px;">🍳 Đang nấu</span>';
+                    actionBtn = `<button class="btn-done" onclick="updateDishStatus(${t.mahd}, ${it.mamon}, 'DaXong')"><i class="bi bi-check2 me-1"></i> Xong món</button>`;
+                }
+
+                html += `
+                    <div class="dish-row ${rowClass}">
+                        <div class="dish-qty">x${it.soluong}</div>
+                        <div class="flex-grow-1 overflow-hidden">
+                            <div class="dish-name text-truncate">${it.tenmon}</div>
+                            ${it.ghichu ? `<div class="dish-note"><i class="bi bi-chat-left-dots me-1"></i>${it.ghichu}</div>` : ''}
+                            <div class="dish-time"><i class="bi bi-clock me-1"></i>${it.thoigian} · ${statusBadge}</div>
+                        </div>
+                        <div class="flex-shrink-0">
+                            ${actionBtn}
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `
+                        </div>
+                        <div class="ticket-footer d-flex justify-content-between align-items-center">
+                            <span class="text-muted small">${t.items.length} món cần làm</span>
+                            <button class="btn btn-sm btn-outline-success fw-bold" onclick="completeTicket(${t.mahd})">
+                                <i class="bi bi-check-all me-1"></i> Xong toàn bàn
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
+    }
+
+    // Cập nhật trạng thái từng món
+    async function updateDishStatus(mahd, mamon, trangthai) {
+        try {
+            var res = await fetch('/api/bep/update-dish-status', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ mahd: mahd, mamon: mamon, trangthai: trangthai })
+            });
+            var data = await res.json();
+            if (data.success) {
+                fetchKitchenOrders(true);
+            } else {
+                alert("Lỗi: " + (data.message || "Không thể cập nhật"));
+            }
+        } catch (e) {
+            console.error("Lỗi updateDishStatus:", e);
+        }
+    }
+
+    // Hoàn thành cả bàn
+    async function completeTicket(mahd) {
+        if (!confirm("Xác nhận đã hoàn thành toàn bộ món cho bàn này?")) return;
+        try {
+            var res = await fetch('/api/bep/complete-ticket', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ mahd: mahd })
+            });
+            var data = await res.json();
+            if (data.success) {
+                fetchKitchenOrders(true);
+            }
+        } catch (e) {
+            console.error("Lỗi completeTicket:", e);
+        }
+    }
+
+    // Tự động quét đơn món mỗi 4 giây (Realtime Polling)
+    setInterval(function() {
+        fetchKitchenOrders(false);
+    }, 4000);
+
+    // Lần đầu tải trang
+    fetchKitchenOrders(true);
+</script>
+{% endblock %}

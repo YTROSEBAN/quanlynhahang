@@ -1,4 +1,4 @@
-﻿import logging
+import logging
 
 from fastapi import APIRouter, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse
@@ -24,7 +24,10 @@ def list_hoadon(request: Request):
                        COALESCE(h.tongthanhtoan, h.tongtien, 0) AS TongTien,
                        h.giamgia AS GiamGia, COALESCE(h.tongthanhtoan, h.tongtien, 0) AS ThanhTien,
                        CASE WHEN h.trangthai = 'DaThanhToan' THEN 'Da thanh toan' ELSE 'Dang phuc vu' END AS TrangThai,
-                       b.tenban AS TenBan, nv.hoten AS HoTen, kh.hoten AS TenKH
+                       b.tenban AS TenBan, nv.hoten AS HoTen, kh.hoten AS TenKH,
+                       (SELECT COUNT(*) FROM ct_hoadon WHERE mahd = h.mahd) AS SoLuongMon,
+                       (SELECT GROUP_CONCAT(CONCAT(m.tenmon, ' (x', ct.soluong, ')') SEPARATOR ', ')
+                        FROM ct_hoadon ct JOIN monan m ON ct.mamon = m.mamon WHERE ct.mahd = h.mahd) AS DanhSachMon
                 FROM hoadon h 
                 LEFT JOIN banan b ON h.maban = b.maban 
                 LEFT JOIN nhanvien nv ON h.manv = nv.manv
@@ -34,11 +37,61 @@ def list_hoadon(request: Request):
             items = result.fetchall()
             bans = conn.execute(text("SELECT maban AS MaBan, tenban AS TenBan FROM banan")).fetchall()
             nhanviens = conn.execute(text("SELECT manv AS MaNV, hoten AS HoTen FROM nhanvien")).fetchall()
-            monans = conn.execute(text("SELECT mamon AS MaMon, tenmon AS TenMon, gia AS DonGia FROM monan")).fetchall()
-        return templates.TemplateResponse(request, "hoadon.html", {"items": items, "bans": bans, "nhanviens": nhanviens, "monans": monans, "active_page": "hoadon"})
+            monans = conn.execute(text("SELECT mamon AS MaMon, tenmon AS TenMon, gia AS DonGia FROM monan WHERE trangthai = 1")).fetchall()
+
+        # Thống kê nhanh an toàn tuyệt đối
+        tong_so_hd = len(items)
+        hd_dangphucvu = 0
+        hd_dathanhtoan = 0
+        tong_doanhthu = 0.0
+
+        for x in items:
+            tt = getattr(x, "TrangThai", "") or ""
+            tien = getattr(x, "ThanhTien", 0) or getattr(x, "TongTien", 0) or 0
+            try:
+                tien_val = float(tien)
+            except Exception:
+                tien_val = 0.0
+
+            if tt in ("Da thanh toan", "DaThanhToan"):
+                hd_dathanhtoan += 1
+                tong_doanhthu += tien_val
+            else:
+                hd_dangphucvu += 1
+
+        return templates.TemplateResponse(
+            request,
+            "hoadon.html",
+            {
+                "items": items,
+                "bans": bans,
+                "nhanviens": nhanviens,
+                "monans": monans,
+                "tong_so_hd": tong_so_hd,
+                "hd_dangphucvu": hd_dangphucvu,
+                "hd_dathanhtoan": hd_dathanhtoan,
+                "tong_doanhthu": tong_doanhthu,
+                "active_page": "hoadon"
+            }
+        )
     except Exception as e:
         print("Lỗi list_hoadon:", e)
-        return templates.TemplateResponse(request, "hoadon.html", {"error": str(e), "items": [], "bans": [], "nhanviens": [], "monans": [], "active_page": "hoadon"})
+        return templates.TemplateResponse(
+            request,
+            "hoadon.html",
+            {
+                "error": str(e),
+                "items": [],
+                "bans": [],
+                "nhanviens": [],
+                "monans": [],
+                "tong_so_hd": 0,
+                "hd_dangphucvu": 0,
+                "hd_dathanhtoan": 0,
+                "tong_doanhthu": 0,
+                "active_page": "hoadon"
+            }
+        )
 
 
 @router.post("/hoadon/add")
@@ -70,13 +123,8 @@ def add_hoadon(
             )
             conn.execute(text("UPDATE banan SET trangthai='DangSuDung' WHERE maban=:id"), {"id": MaBan})
             conn.commit()
-<<<<<<< Updated upstream
     except Exception as e:
         print("Lỗi add_hoadon:", e)
-=======
-    except Exception:
-        logger.exception('LOI tai dong 64')
->>>>>>> Stashed changes
     return RedirectResponse(url="/hoadon", status_code=303)
 
 
@@ -90,13 +138,8 @@ def delete_hoadon(id: int):
             conn.execute(text("DELETE FROM ct_hoadon WHERE mahd = :id"), {"id": id})
             conn.execute(text("DELETE FROM hoadon WHERE mahd = :id"), {"id": id})
             conn.commit()
-<<<<<<< Updated upstream
     except Exception as e:
         print("Lỗi delete_hoadon:", e)
-=======
-    except Exception:
-        logger.exception('LOI tai dong 79')
->>>>>>> Stashed changes
     return RedirectResponse(url="/hoadon", status_code=303)
 
 
@@ -109,13 +152,8 @@ def thanh_toan(id: int):
                 conn.execute(text("UPDATE banan SET trangthai='Trong' WHERE maban=:id"), {"id": hd.maban})
             conn.execute(text("UPDATE hoadon SET trangthai='DaThanhToan' WHERE mahd=:id"), {"id": id})
             conn.commit()
-<<<<<<< Updated upstream
     except Exception as e:
         print("Lỗi thanh_toan:", e)
-=======
-    except Exception:
-        logger.exception('LOI tai dong 93')
->>>>>>> Stashed changes
     return RedirectResponse(url="/hoadon", status_code=303)
 
 

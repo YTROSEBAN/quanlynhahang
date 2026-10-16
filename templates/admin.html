@@ -1,0 +1,302 @@
+{% extends "base.html" %}
+{% block title %}Trung Tâm Quản Trị — 影 KAGE{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Bố cục Sidebar bên trái + Nội dung bên phải */
+    .admin-container {
+        display: flex;
+        gap: 24px;
+        align-items: flex-start;
+        margin-top: 8px;
+    }
+
+    /* SIDEBAR BÊN TRÁI */
+    .admin-sidebar {
+        width: 270px;
+        flex-shrink: 0;
+        background: #0d131a;
+        border: 1px solid rgba(223, 231, 224, 0.14);
+        border-radius: 14px;
+        padding: 20px 16px;
+        position: sticky;
+        top: 80px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    }
+
+    .admin-sidebar-title {
+        font-size: 11.5px;
+        font-weight: 700;
+        color: #79847e;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        padding: 0 4px 10px 4px;
+        margin-bottom: 12px;
+        border-bottom: 1px solid rgba(223, 231, 224, 0.08);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .admin-menu-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .admin-tab-btn {
+        width: 100%;
+        text-align: left;
+        background: #121922;
+        border: 1px solid rgba(223, 231, 224, 0.1);
+        color: #dfe7e0;
+        padding: 13px 16px;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .admin-tab-btn:hover {
+        background: rgba(224, 35, 28, 0.12);
+        border-color: rgba(224, 35, 28, 0.5);
+        color: #fff;
+        transform: translateX(3px);
+    }
+    .admin-tab-btn.active {
+        background: linear-gradient(135deg, #e0231c 0%, #a8160f 100%);
+        border-color: #e0231c;
+        color: #ffffff;
+        box-shadow: 0 6px 20px rgba(224, 35, 28, 0.35);
+    }
+    .admin-tab-btn .badge-num {
+        margin-left: auto;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 3px 8px;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.18);
+        color: #fff;
+    }
+
+    /* Lối tắt */
+    .admin-shortcut-link {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 14px;
+        color: #aab4ad;
+        text-decoration: none;
+        font-size: 13.5px;
+        font-weight: 500;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+    }
+    .admin-shortcut-link:hover {
+        background: rgba(255, 255, 255, 0.05);
+        color: #ffffff;
+        transform: translateX(3px);
+    }
+
+    /* NỘI DUNG BÊN PHẢI */
+    .admin-main-content {
+        flex-grow: 1;
+        min-width: 0;
+    }
+
+    .admin-panel {
+        display: none;
+    }
+    .admin-panel.active {
+        display: block;
+    }
+
+    .admin-stat-box {
+        background: #0d131a;
+        border: 1px solid rgba(223, 231, 224, 0.12);
+        border-radius: 12px;
+        padding: 16px 18px;
+        position: relative;
+        overflow: hidden;
+    }
+    .admin-stat-box .val {
+        font-size: 24px;
+        font-weight: 700;
+        color: #ffffff;
+        margin-top: 4px;
+    }
+    .admin-stat-box .lbl {
+        font-size: 12px;
+        font-weight: 500;
+        color: #8b9791;
+        text-transform: uppercase;
+    }
+
+    @media (max-width: 991.98px) {
+        .admin-container {
+            flex-direction: column;
+        }
+        .admin-sidebar {
+            width: 100%;
+            position: relative;
+            top: 0;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-3 px-lg-4 py-2">
+
+    <!-- Top Header Hiện Đại Sang Trọng -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4 p-4 rounded-4" style="background: linear-gradient(135deg, #0e1520 0%, #151d2a 100%); border: 1px solid rgba(223, 231, 224, 0.15); box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="badge bg-danger text-uppercase px-2 py-1" style="font-size: 10px; letter-spacing: 1px;">Admin Hub</span>
+                <span class="text-warning small fst-italic">KAGE Restaurant Control Center</span>
+            </div>
+            <h2 class="text-white fw-bold mb-1 d-flex align-items-center gap-2">
+                <i class="bi bi-shield-lock-fill text-danger"></i> Trung Tâm Quản Trị Hệ Thống
+            </h2>
+            <p class="text-muted mb-0 small">Bảng điều khiển tập trung: Thêm, Sửa, Xóa Bàn ăn, Thực đơn món ăn và Nhân sự nhà hàng</p>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <a href="/monan/add" class="btn btn-outline-danger btn-sm px-3 py-2 fw-semibold d-inline-flex align-items-center gap-1 shadow-sm">
+                <i class="bi bi-plus-lg"></i> Thêm Món Mới
+            </a>
+            <a href="/nhanvien/add" class="btn btn-outline-warning btn-sm px-3 py-2 fw-semibold d-inline-flex align-items-center gap-1 shadow-sm">
+                <i class="bi bi-person-plus-fill"></i> Thêm Nhân Sự
+            </a>
+            <a href="/order" class="btn btn-danger btn-sm px-3 py-2 fw-bold d-inline-flex align-items-center gap-1 shadow">
+                <i class="bi bi-cart-plus-fill"></i> Mở POS Gọi Món
+            </a>
+        </div>
+    </div>
+
+    <!-- 4 Khối Số Liệu Nhanh (Hiển thị thẻ bo tròn sang trọng) -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="admin-stat-box" style="border-left: 4px solid #0d6efd; background: #0c1219;">
+                <div class="lbl"><i class="bi bi-grid-3x3-gap me-1 text-primary"></i> Bàn Ăn</div>
+                <div class="val text-white">{{ tong_ban }}</div>
+                <small class="text-muted">Khu vực &amp; chỗ ngồi</small>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="admin-stat-box" style="border-left: 4px solid #198754; background: #0c1219;">
+                <div class="lbl"><i class="bi bi-cup-hot me-1 text-success"></i> Món Ăn</div>
+                <div class="val text-white">{{ tong_monan }}</div>
+                <small class="text-muted">Thực đơn đang phục vụ</small>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="admin-stat-box" style="border-left: 4px solid #ffc107; background: #0c1219;">
+                <div class="lbl"><i class="bi bi-people me-1 text-warning"></i> Nhân Sự</div>
+                <div class="val text-white">{{ nhanviens_full|length }}</div>
+                <small class="text-muted">Tài khoản &amp; chức vụ</small>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="admin-stat-box" style="border-left: 4px solid #e0231c; background: #0c1219;">
+                <div class="lbl text-danger"><i class="bi bi-coin me-1"></i> Doanh Thu</div>
+                <div class="val text-danger">{{ "{:,.0f}".format(doanhthu or 0) }} ₫</div>
+                <small class="text-muted">{{ tong_hoadon }} hóa đơn phát sinh</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- KHỐI BỐ CỤC: SIDEBAR BÊN TRÁI + NỘI DUNG BÊN PHẢI -->
+    <div class="admin-container">
+
+        <!-- SIDEBAR BÊN TRÁI -->
+        <aside class="admin-sidebar">
+            <div class="admin-sidebar-title">
+                <i class="bi bi-layout-sidebar-inset text-danger"></i> Menu Quản Trị
+            </div>
+
+            <ul class="admin-menu-list mb-4">
+                <li>
+                    <button type="button" class="admin-tab-btn active" onclick="switchAdminTab('monan', this)">
+                        <i class="bi bi-cup-hot-fill"></i>
+                        <span>Quản Lý Món Ăn</span>
+                        <span class="badge-num">{{ tong_monan }}</span>
+                    </button>
+                </li>
+                <li>
+                    <button type="button" class="admin-tab-btn" onclick="switchAdminTab('ban', this)">
+                        <i class="bi bi-grid-3x3-gap-fill"></i>
+                        <span>Quản Lý Bàn Ăn</span>
+                        <span class="badge-num">{{ tong_ban }}</span>
+                    </button>
+                </li>
+                <li>
+                    <button type="button" class="admin-tab-btn" onclick="switchAdminTab('nhanvien', this)">
+                        <i class="bi bi-people-fill"></i>
+                        <span>Quản Lý Nhân Sự</span>
+                        <span class="badge-num">{{ nhanviens_full|length }}</span>
+                    </button>
+                </li>
+            </ul>
+
+            <div class="admin-sidebar-title">
+                <i class="bi bi-lightning-charge text-warning"></i> Thao Tác Nhanh
+            </div>
+            <div class="d-flex flex-column gap-1">
+                <a href="/monan/add" class="admin-shortcut-link">
+                    <i class="bi bi-plus-circle text-danger"></i> Thêm món mới
+                </a>
+                <a href="/nhanvien/add" class="admin-shortcut-link">
+                    <i class="bi bi-person-plus text-warning"></i> Thêm nhân viên
+                </a>
+                <a href="/order" class="admin-shortcut-link">
+                    <i class="bi bi-cart3 text-success"></i> Màn hình order
+                </a>
+                <a href="/hoadon" class="admin-shortcut-link">
+                    <i class="bi bi-receipt text-info"></i> Xem sổ hóa đơn
+                </a>
+            </div>
+        </aside>
+
+        <!-- NỘI DUNG CHÍNH (NẰM BÊN PHẢI) -->
+        <main class="admin-main-content">
+
+            <!-- TAB 1: QUẢN LÝ MÓN ĂN -->
+            <div id="panel-monan" class="admin-panel active">
+                {% set items = monan_items %}{% include "_monan.html" %}
+            </div>
+
+            <!-- TAB 2: QUẢN LÝ BÀN ĂN -->
+            <div id="panel-ban" class="admin-panel">
+                {% set items = bans %}{% include "_ban.html" %}
+            </div>
+
+            <!-- TAB 3: QUẢN LÝ NHÂN VIÊN -->
+            <div id="panel-nhanvien" class="admin-panel">
+                {% set items = nhanviens_full %}{% include "_nhanvien.html" %}
+            </div>
+
+        </main>
+
+    </div>
+
+</div>
+
+<script>
+    function switchAdminTab(tabName, btn) {
+        document.querySelectorAll('.admin-tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        document.querySelectorAll('.admin-panel').forEach(p => p.classList.remove('active'));
+        const target = document.getElementById('panel-' + tabName);
+        if (target) {
+            target.classList.add('active');
+        }
+    }
+</script>
+{% endblock %}

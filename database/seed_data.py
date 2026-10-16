@@ -96,7 +96,7 @@ def run_seed(engine):
                 )
                 manv = conn.execute(text("SELECT LAST_INSERT_ID()")).scalar()
                 conn.execute(
-                    text("INSERT INTO taikhoan (tendangnhap, matkhau, trangthai, manv) VALUES (:u, :p, 1, :manv)"),
+                    text("INSERT IGNORE INTO taikhoan (tendangnhap, matkhau, trangthai, manv) VALUES (:u, :p, 1, :manv)"),
                     {"u": user, "p": pwd, "manv": manv}
                 )
             conn.commit()
