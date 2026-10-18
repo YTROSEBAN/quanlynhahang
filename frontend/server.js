@@ -374,6 +374,56 @@ app.get('/api/monan', async (req, res) => {
   }
 });
 
+// 3.1 API Thêm Món ăn mới
+app.post('/api/monan', async (req, res) => {
+  const { name, category, price, description = '', image = '' } = req.body;
+  try {
+    const [dms] = await pool.query('SELECT madm FROM danhmuc WHERE tendm = ? LIMIT 1', [category]);
+    const madm = dms.length > 0 ? dms[0].madm : 2;
+    const [result] = await pool.query(
+      'INSERT INTO monan (tenmon, madm, gia, mota, hinhanh, trangthai) VALUES (?, ?, ?, ?, ?, 1)',
+      [name, madm, price, description, image]
+    );
+    res.json({ success: true, id: result.insertId, message: 'Đã thêm món ăn thành công!' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 3.2 API Sửa Món ăn
+app.put('/api/monan/:id', async (req, res) => {
+  const { id } = req.params;
+  const { name, category, price, description = '', image = '' } = req.body;
+  try {
+    const [dms] = await pool.query('SELECT madm FROM danhmuc WHERE tendm = ? LIMIT 1', [category]);
+    const madm = dms.length > 0 ? dms[0].madm : 2;
+    await pool.query(
+      'UPDATE monan SET tenmon = ?, madm = ?, gia = ?, mota = ?, hinhanh = ? WHERE mamon = ?',
+      [name, madm, price, description, image, id]
+    );
+    res.json({ success: true, message: 'Đã cập nhật món ăn thành công!' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 3.3 API Xóa Món ăn khỏi thực đơn
+app.delete('/api/monan/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const [ct] = await pool.query('SELECT COUNT(*) as count FROM ct_hoadon WHERE mamon = ?', [id]);
+    if (ct[0].count > 0) {
+      await pool.query('UPDATE monan SET trangthai = 0 WHERE mamon = ?', [id]);
+    } else {
+      await pool.query('DELETE FROM monan WHERE mamon = ?', [id]);
+    }
+    res.json({ success: true, message: 'Đã xóa món ăn khỏi thực đơn!' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+
 // 4. API Danh sách Vé Bếp (KDS)
 app.get('/api/bep', async (req, res) => {
   try {
@@ -672,10 +722,11 @@ app.post('/api/order/cancel-item', async (req, res) => {
       }
 
       // Trừ tổng tiền hóa đơn
-      await conn.query('UPDATE hoadon SET tongtien = GREATEST(0, tongtien - ?) WHERE mahd = ?', [amountToReduce, invoiceId]);
+      await conn.query('UPDATE hoadon SET tongtien = GREATEST(0, tongtien - ?), tongthanhtoan = GREATEST(0, tongthanhtoan - ?) WHERE mahd = ?', [amountToReduce, amountToReduce, invoiceId]);
     } else {
       // HỦY TOÀN BỘ HÓA ĐƠN VÀ TOÀN BỘ MÓN
       await conn.query('DELETE FROM ct_hoadon WHERE mahd = ?', [invoiceId]);
+      await conn.query('DELETE FROM thanhtoan WHERE mahd = ?', [invoiceId]).catch(() => {});
       await conn.query('DELETE FROM hoadon WHERE mahd = ?', [invoiceId]);
     }
 
@@ -683,10 +734,12 @@ app.post('/api/order/cancel-item', async (req, res) => {
     const [remainingItems] = await conn.query('SELECT COUNT(*) AS count FROM ct_hoadon WHERE mahd = ?', [invoiceId]);
     if (remainingItems.length === 0 || remainingItems[0].count === 0) {
       // Xóa luôn hóa đơn rỗng
+      await conn.query('DELETE FROM ct_hoadon WHERE mahd = ?', [invoiceId]);
+      await conn.query('DELETE FROM thanhtoan WHERE mahd = ?', [invoiceId]).catch(() => {});
       await conn.query('DELETE FROM hoadon WHERE mahd = ?', [invoiceId]);
       // Kiểm tra bàn còn hóa đơn đang chờ nào khác không, nếu không trả bàn về 'Trong'
       const [otherHds] = await conn.query('SELECT COUNT(*) AS count FROM hoadon WHERE maban = ? AND trangthai = "Cho"', [hd.maban]);
-      if (otherHds[0].count === 0) {
+      if (otherHds.length === 0 || otherHds[0].count === 0) {
         await conn.query('UPDATE banan SET trangthai = "Trong" WHERE maban = ?', [hd.maban]);
       }
     }

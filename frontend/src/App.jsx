@@ -256,7 +256,16 @@ export default function App() {
 
   // Khởi tạo các State chính - Đảm bảo LUÔN CÓ DỮ LIỆU hiển thị
   const [tables, setTables] = useState(() => loadStorageSafe('kage_tables', DEFAULT_TABLES));
-  const [dishes, setDishes] = useState(() => loadStorageSafe('kage_dishes', DEFAULT_DISHES));
+  const [dishes, setDishes] = useState(() => {
+    const raw = loadStorageSafe('kage_dishes', DEFAULT_DISHES);
+    return raw.map(d => {
+      let name = d.name || '';
+      if (name.includes('?')) {
+        name = name.replace(/Ph\? b.? Hu\?/gi, 'Phở Bò Huế').replace(/\?/g, '');
+      }
+      return { ...d, name };
+    });
+  });
   const [tickets, setTickets] = useState(() => loadStorageSafe('kage_tickets', DEFAULT_TICKETS));
   const [invoices, setInvoices] = useState(() => loadStorageSafe('kage_invoices', DEFAULT_INVOICES));
   const [staffList, setStaffList] = useState(() => loadStorageSafe('kage_staff', DEFAULT_STAFF));
@@ -435,10 +444,11 @@ export default function App() {
 
   // Kiểm tra phân quyền theo vai trò (Role-based permissions)
   const userRole = (currentUser?.role_code || '').toLowerCase();
-  const isAdmin = userRole === 'admin' || (currentUser?.chucvu || '').toLowerCase().includes('quản');
-  const isThuNgan = isAdmin || userRole === 'thungan' || (currentUser?.chucvu || '').toLowerCase().includes('thu ngân');
-  const isPhucVu = isAdmin || userRole === 'phucvu' || (currentUser?.chucvu || '').toLowerCase().includes('phục vụ');
-  const isBep = isAdmin || userRole === 'bep' || (currentUser?.chucvu || '').toLowerCase().includes('bếp');
+  const userCv = (currentUser?.chucvu || '').toLowerCase();
+  const isAdmin = userRole === 'admin' || userCv.includes('quản') || userCv.includes('quan') || userCv.includes('admin');
+  const isThuNgan = isAdmin || userRole === 'thungan' || userCv.includes('thu ngân') || userCv.includes('thu ngan');
+  const isPhucVu = isAdmin || userRole === 'phucvu' || userCv.includes('phục vụ') || userCv.includes('phuc vu');
+  const isBep = isAdmin || userRole === 'bep' || userCv.includes('bếp') || userCv.includes('bep');
 
   // Tự động lưu vào LocalStorage khi state thay đổi
   useEffect(() => {
@@ -1306,12 +1316,23 @@ export default function App() {
     setEditingDish(null);
   };
 
-  // Xóa món ăn
-  const handleDeleteDish = (dishId) => {
+  // Xóa món ăn khỏi thực đơn
+  const handleDeleteDish = async (dishId) => {
     const dish = dishes.find(d => d.id === dishId);
     if (window.confirm(`Bạn có chắc muốn xóa món "${dish?.name || 'này'}" khỏi thực đơn?`)) {
+      try {
+        const res = await fetch(`/api/monan/${dishId}`, { method: 'DELETE' });
+        const data = await res.json();
+        if (data.success) {
+          notify(`Đã xóa món ăn thành công!`);
+        } else {
+          notify(data.message || 'Đã xóa món ăn!');
+        }
+      } catch (err) {
+        notify(`Đã xóa món ăn khỏi giao diện!`);
+      }
       setDishes(prev => prev.filter(d => d.id !== dishId));
-      notify(`Đã xóa món ăn thành công!`);
+      loadDataFromDatabase();
     }
   };
 
@@ -1666,7 +1687,7 @@ export default function App() {
 
         <div className="login-box-card">
           <div className="login-brand-header">
-            <div className="brand-icon">影</div>
+            <div className="brand-icon">🍽️</div>
             <div>
               <h2>KAGE RESTAURANT</h2>
               <span>HỆ THỐNG QUẢN LÝ NHÀ HÀNG CHUYÊN NGHIỆP</span>
@@ -1753,7 +1774,7 @@ export default function App() {
       {/* ═══ SIDEBAR BÊN TRÁI ═══ */}
       <aside className="kage-sidebar">
         <div className="brand-header">
-          <div className="brand-icon">影</div>
+          <div className="brand-icon">🍽️</div>
           <div className="brand-info">
             <h2>KAGE</h2>
             <span>NHÀ HÀNG ẨM THỰC</span>
@@ -1769,7 +1790,6 @@ export default function App() {
           >
             <TrendingUp size={18} />
             <span>Tổng Quan</span>
-            <small>入口</small>
           </button>
 
           <button 
@@ -1778,7 +1798,6 @@ export default function App() {
           >
             <Grid3X3 size={18} />
             <span>Bàn Ăn ({tables.length})</span>
-            <small>座敷</small>
           </button>
 
           <button 
@@ -1787,7 +1806,6 @@ export default function App() {
           >
             <UtensilsCrossed size={18} />
             <span>Thực Đơn ({dishes.length})</span>
-            <small>献立</small>
           </button>
 
           {(isAdmin || isPhucVu || isThuNgan || isBep) && (
@@ -1797,7 +1815,6 @@ export default function App() {
             >
               <ShoppingCart size={18} />
               <span>Gọi Món (POS)</span>
-              <small>注文</small>
             </button>
           )}
 
@@ -1808,7 +1825,6 @@ export default function App() {
             >
               <Flame size={18} />
               <span>Nhà Bếp ({tickets.length})</span>
-              <small>厨房</small>
             </button>
           )}
 
@@ -1819,7 +1835,6 @@ export default function App() {
             >
               <Receipt size={18} />
               <span>Hóa Đơn ({invoices.length})</span>
-              <small>伝票</small>
             </button>
           )}
 
@@ -1830,7 +1845,6 @@ export default function App() {
             >
               <BarChart3 size={18} />
               <span>Thống Kê Doanh Thu</span>
-              <small>統計</small>
             </button>
           )}
 
@@ -1841,7 +1855,6 @@ export default function App() {
             >
               <CalendarCheck size={18} />
               <span>Đặt Bàn ({reservations.length})</span>
-              <small>予約</small>
             </button>
           )}
 
@@ -1852,7 +1865,6 @@ export default function App() {
             >
               <UserCheck size={18} />
               <span>Khách Hàng ({customers.length})</span>
-              <small>顧客</small>
             </button>
           )}
 
@@ -1863,7 +1875,6 @@ export default function App() {
             >
               <Tag size={18} />
               <span>Khuyến Mãi ({promotions.length})</span>
-              <small>割引</small>
             </button>
           )}
 
@@ -1874,7 +1885,6 @@ export default function App() {
             >
               <Warehouse size={18} />
               <span>Kho &amp; Nhập ({warehouseData.materials?.length || 0})</span>
-              <small>倉庫</small>
             </button>
           )}
 
@@ -1884,7 +1894,6 @@ export default function App() {
           >
             <Users size={18} />
             <span>Nhân Viên ({staffList.length})</span>
-            <small>職人</small>
           </button>
         </nav>
 
@@ -2263,9 +2272,12 @@ export default function App() {
                       <button 
                         className="btn-table-action" 
                         onClick={() => {
-                          const inv = invoices.find(i => i.tableId === table.id && i.status === 'ChuaThanhToan');
-                          if (inv) setCancelingInvoice(inv);
-                          else alert('Bàn này chưa có hóa đơn tạm tính!');
+                          const inv = invoices.find(i => Number(i.tableId) === Number(table.id) && i.status === 'ChuaThanhToan');
+                          if (inv) {
+                            setCancelingInvoice(inv);
+                          } else {
+                            alert(`Bàn ${table.name} chưa có hóa đơn tạm tính nào để hủy món! Bạn có thể bấm "Đổi trạng thái" để trả về Bàn Trống.`);
+                          }
                         }}
                         style={{ background: 'rgba(239, 68, 68, 0.2)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.3)' }}
                         title="Hủy món hoặc hủy order của bàn này"
@@ -2615,14 +2627,28 @@ export default function App() {
                 </div>
 
                 <div className="cart-footer">
-                  <div className="cart-summary-row">
-                    <span>Số lượng món:</span>
-                    <span>{cart.reduce((s, i) => s + i.qty, 0)} món</span>
-                  </div>
-                  <div className="cart-summary-row total">
-                    <span>Tạm tính:</span>
-                    <span>{cartTotal.toLocaleString('vi-VN')} ₫</span>
-                  </div>
+                  {(() => {
+                    const activeInv = invoices.find(i => Number(i.tableId) === Number(selectedTableId) && i.status === 'ChuaThanhToan');
+                    const existingTotal = activeInv ? (activeInv.total || 0) : 0;
+                    return (
+                      <>
+                        {activeInv && (
+                          <div className="cart-summary-row" style={{ color: '#fca5a5', fontSize: 13, paddingBottom: 4, borderBottom: '1px dashed rgba(255,255,255,0.1)' }}>
+                            <span>Tiền các món đã gọi trước:</span>
+                            <span style={{ fontWeight: 'bold' }}>{existingTotal.toLocaleString('vi-VN')} ₫</span>
+                          </div>
+                        )}
+                        <div className="cart-summary-row" style={{ marginTop: 4 }}>
+                          <span>Món mới chọn đợt này:</span>
+                          <span>{cart.reduce((s, i) => s + i.qty, 0)} món ({cartTotal.toLocaleString('vi-VN')} ₫)</span>
+                        </div>
+                        <div className="cart-summary-row total" style={{ marginTop: 4 }}>
+                          <span>Tổng tạm tính của bàn:</span>
+                          <span style={{ color: '#22c55e', fontSize: 18 }}>{(existingTotal + cartTotal).toLocaleString('vi-VN')} ₫</span>
+                        </div>
+                      </>
+                    );
+                  })()}
                   <button 
                     className="btn-send-order" 
                     disabled={cart.length === 0}
@@ -4846,15 +4872,15 @@ export default function App() {
         </div>
       )}
 
-      {/* MODAL HỦY MÓN ĐÃ GỌI / HỦY ORDER (CHỈ ADMIN) */}
-      {cancelingInvoice && isAdmin && (
+      {/* MODAL HỦY MÓN ĐÃ GỌI / HỦY ORDER */}
+      {cancelingInvoice && (
         <div className="modal-backdrop" onClick={() => setCancelingInvoice(null)}>
           <div className="modal-card" onClick={e => e.stopPropagation()} style={{ maxWidth: 480 }}>
             <h3>
               <Trash2 size={18} className="text-danger" /> Quản Lý Hủy Món: {cancelingInvoice.tableName} (#{cancelingInvoice.id})
             </h3>
             <p style={{ fontSize: 13, color: '#94a3b8', margin: '4px 0 16px' }}>
-              Quyền Admin: Chọn món muốn hủy bớt hoặc hủy toàn bộ order của bàn. Tiền trong hóa đơn sẽ tự động được trừ đi và cập nhật lại bên Bếp.
+              Chọn món muốn hủy bớt hoặc hủy toàn bộ order của bàn. Tiền trong hóa đơn sẽ tự động được trừ đi và cập nhật lại bên Bếp.
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxHeight: 300, overflowY: 'auto', marginBottom: 16 }}>
