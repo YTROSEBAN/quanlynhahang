@@ -1,0 +1,29 @@
+/* Reset mặc định cho ứng dụng KAGE React */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root, html, body {
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #070a0e;
+  color: #f0f4f2;
+}
+
+/* Ép buộc mọi select và option trên toàn bộ hệ điều hành (Windows/Chrome/Edge) */
+select {
+  background-color: #0d1520 !important;
+  color: #ffffff !important;
+  color-scheme: dark !important;
+}
+
+select option {
+  background-color: #172230 !important;
+  color: #ffffff !important;
+}
